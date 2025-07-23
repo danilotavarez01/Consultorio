@@ -60,6 +60,21 @@ require_once "permissions.php";
         <a href="reportes_facturacion.php"><i class="fas fa-chart-bar"></i> Reportes</a>
         <?php endif; ?>
 
-        <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        <a href="logout.php" onclick="return confirmarLogout();" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
     </nav>
 </div>
+
+<script>
+function confirmarLogout() {
+    // Confirmación antes de cerrar sesión
+    if (confirm('¿Estás seguro de que deseas cerrar sesión?')) {
+        // Log para debug
+        console.log('Cerrando sesión del usuario...');
+        
+        // Redirigir inmediatamente sin esperar
+        window.location.href = 'logout.php';
+        return false; // Prevenir el enlace normal por si acaso
+    }
+    return false; // Cancelar si no confirma
+}
+</script>

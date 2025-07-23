@@ -87,6 +87,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt = null;  // Changed from mysqli_stmt_close() to PDO statement nullification
     }
 }
+
+// Manejar mensajes de logout
+$logout_message = '';
+if (isset($_GET['logout'])) {
+    switch ($_GET['logout']) {
+        case 'success':
+            $logout_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle"></i> <strong>Sesión cerrada exitosamente.</strong> Has sido desconectado del sistema.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+            break;
+        case 'inactive':
+            $logout_message = '<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-clock"></i> <strong>Sesión expirada.</strong> Tu sesión ha caducado por inactividad.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+            break;
+        default:
+            $logout_message = '<div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle"></i> <strong>Sesión terminada.</strong> Por favor, inicia sesión nuevamente.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+            break;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -175,7 +206,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="alert alert-danger">
         <strong>Error:</strong> <?php echo htmlspecialchars($error_msg); ?>
     </div>
-    <?php endif; ?>        <div class="wrapper">
+    <?php endif; ?>
+    
+    <?php if (!empty($logout_message)): ?>
+        <?php echo $logout_message; ?>
+    <?php endif; ?>
+    
+    <div class="wrapper">
         <?php if (!empty($logo_path)): ?>
             <img src="<?php echo htmlspecialchars($logo_path); ?>" alt="Logo" class="logo-img" 
                  onerror="this.onerror=null; this.src='<?php echo isset($logo_data_uri) ? htmlspecialchars($logo_data_uri) : 'medicina.png'; ?>';">
@@ -220,5 +257,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </form>
     </div>
+
+    <!-- Scripts para Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Auto-ocultar alertas después de 5 segundos -->
+    <script>
+        $(document).ready(function() {
+            // Auto-ocultar alertas de logout después de 5 segundos
+            $('.alert').each(function() {
+                var $alert = $(this);
+                setTimeout(function() {
+                    $alert.alert('close');
+                }, 5000);
+            });
+        });
+    </script>
 </body>
 </html>
