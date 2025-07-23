@@ -319,10 +319,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <!-- Filtros -->
                 <div class="row mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <input type="date" id="filtroFecha" class="form-control" value="<?php echo date('Y-m-d'); ?>">
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <select id="filtroEstado" class="form-control">
                             <option value="">Todos los estados</option>
                             <option value="pendiente">Pendiente</option>
@@ -331,6 +331,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="cancelado">Cancelado</option>
                         </select>
                     </div>
+                    <?php if ($multi_medico): ?>
+                    <div class="col-md-3">
+                        <select id="filtroMedico" class="form-control">
+                            <option value="">Todos los médicos</option>
+                            <?php foreach ($doctores as $doctor): ?>
+                            <option value="<?php echo $doctor['id']; ?>">
+                                <?php echo htmlspecialchars($doctor['nombre']); ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" id="aplicarFiltros" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                        <button type="button" id="limpiarFiltros" class="btn btn-secondary">
+                            <i class="fas fa-eraser"></i> Limpiar
+                        </button>
+                    </div>
+                    <?php else: ?>
+                    <div class="col-md-6">
+                        <button type="button" id="aplicarFiltros" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filtrar
+                        </button>
+                        <button type="button" id="limpiarFiltros" class="btn btn-secondary">
+                            <i class="fas fa-eraser"></i> Limpiar
+                        </button>
+                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Tabla de turnos -->
@@ -352,7 +381,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <tbody>
                             <?php
                             // Obtener la fecha del filtro o usar la fecha actual
-                            $fecha_mostrar = isset($_GET['fecha']) ? $_GET['fecha'] : date('Y-m-d');                            // Primero verificar si existe la columna orden_llegada
+                            $fecha_mostrar = isset($_GET['fecha']) ? $_GET['fecha'] : date('Y-m-d');
+                            
+                            // Construir la consulta con filtros dinámicos
+                            $where_conditions = ["fecha_turno = ?"];
+                            $params = [$fecha_mostrar];
+                            
+                            // Agregar filtro por estado si se especifica
+                            if (isset($_GET['estado']) && !empty($_GET['estado'])) {
+                                $where_conditions[] = "t.estado = ?";
+                                $params[] = $_GET['estado'];
+                            }
+                            
+                            // Agregar filtro por médico si se especifica y multi_medico está habilitado
+                            if ($multi_medico && isset($_GET['medico']) && !empty($_GET['medico'])) {
+                                $where_conditions[] = "t.medico_id = ?";
+                                $params[] = $_GET['medico'];
+                            }
+                            
+                            $where_clause = implode(" AND ", $where_conditions);
+                            
+                            // Primero verificar si existe la columna orden_llegada
                             $checkColumn = $conn->query("SHOW COLUMNS FROM turnos LIKE 'orden_llegada'");
                             
                             if ($checkColumn->rowCount() > 0) {
@@ -360,19 +409,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 $sql = "SELECT t.*, p.nombre, p.apellido, p.dni 
                                         FROM turnos t 
                                         JOIN pacientes p ON t.paciente_id = p.id 
-                                        WHERE fecha_turno = ? 
+                                        WHERE $where_clause 
                                         ORDER BY t.orden_llegada IS NULL, t.orden_llegada, t.hora_turno";
                             } else {
                                 // Si la columna no existe, usar el orden normal
                                 $sql = "SELECT t.*, p.nombre, p.apellido, p.dni 
                                         FROM turnos t 
                                         JOIN pacientes p ON t.paciente_id = p.id 
-                                        WHERE fecha_turno = ? 
+                                        WHERE $where_clause 
                                         ORDER BY t.hora_turno";
                             }
                             try {
                                 $stmt = $conn->prepare($sql);
-                                $stmt->execute([$fecha_mostrar]);
+                                $stmt->execute($params);
                                 while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {                                    $clase_estado = "estado-" . $row['estado'];
                                     echo "<tr class='".$clase_estado."'>";
                                       // Verificar si la columna orden_llegada existe en el conjunto de resultados
@@ -537,9 +586,42 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $('.form-text.text-muted').text('Hora actual: ' + horaAMPM + ' (se aplica automáticamente)');
             }
             
-            // Manejar cambio de fecha
+            // Función para aplicar filtros
+            function aplicarFiltros() {
+                var fecha = $('#filtroFecha').val();
+                var estado = $('#filtroEstado').val();
+                var medico = $('#filtroMedico').length ? $('#filtroMedico').val() : '';
+                
+                var url = 'turnos.php?fecha=' + fecha;
+                if (estado) {
+                    url += '&estado=' + estado;
+                }
+                if (medico) {
+                    url += '&medico=' + medico;
+                }
+                
+                window.location.href = url;
+            }
+            
+            // Función para limpiar filtros
+            function limpiarFiltros() {
+                var fecha = $('#filtroFecha').val();
+                window.location.href = 'turnos.php?fecha=' + fecha;
+            }
+            
+            // Manejar botón aplicar filtros
+            $('#aplicarFiltros').click(function() {
+                aplicarFiltros();
+            });
+            
+            // Manejar botón limpiar filtros
+            $('#limpiarFiltros').click(function() {
+                limpiarFiltros();
+            });
+            
+            // Manejar cambio de fecha (aplicar inmediatamente)
             $('#filtroFecha').change(function() {
-                window.location.href = 'turnos.php?fecha=' + $(this).val();
+                aplicarFiltros();
             });
 
             // Manejar el envío del formulario de estado
@@ -549,7 +631,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 var fecha = $('#filtroFecha').val();
                 
                 $.post('turnos.php', form.serialize() + '&fecha_turno=' + fecha, function(response) {
-                    window.location.href = 'turnos.php?fecha=' + fecha;
+                    aplicarFiltros(); // Usar la función de filtros
                 });
             });
             
@@ -568,10 +650,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 });
             });
 
-            // Establecer la fecha del filtro si viene en la URL
+            // Establecer los valores de los filtros desde la URL
             var urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('fecha')) {
                 $('#filtroFecha').val(urlParams.get('fecha'));
+            }
+            if (urlParams.has('estado')) {
+                $('#filtroEstado').val(urlParams.get('estado'));
+            }
+            if (urlParams.has('medico') && $('#filtroMedico').length) {
+                $('#filtroMedico').val(urlParams.get('medico'));
             }
         });
     </script>
