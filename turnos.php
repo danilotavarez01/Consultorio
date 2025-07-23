@@ -40,6 +40,41 @@ try {
     // Just continue if there's an error, we'll handle it when actually using the column
 }
 
+// Obtener configuración para verificar si multi_medico está habilitado
+$config = null;
+$multi_medico = false;
+$doctores = [];
+try {
+    $stmt = $conn->query("SELECT multi_medico, medico_nombre FROM configuracion WHERE id = 1");
+    $config = $stmt->fetch(PDO::FETCH_ASSOC);
+    $multi_medico = isset($config['multi_medico']) && $config['multi_medico'] == 1;
+    
+    // Obtener lista de doctores si multi_medico está habilitado
+    if ($multi_medico) {
+        $stmt = $conn->query("SELECT id, nombre, username FROM usuarios WHERE rol IN ('admin', 'doctor') ORDER BY nombre");
+        $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch(PDOException $e) {
+    // Si hay error al obtener configuración, continuar con valores por defecto
+}
+
+// Verificar y crear columna medico_id en turnos si no existe
+try {
+    $checkColumn = $conn->query("SHOW COLUMNS FROM turnos LIKE 'medico_id'");
+    if ($checkColumn->rowCount() == 0) {
+        // Column doesn't exist, create it
+        $conn->exec("ALTER TABLE turnos ADD COLUMN medico_id INT NULL");
+    }
+    
+    // También verificar columna medico_nombre por si se necesita
+    $checkColumn = $conn->query("SHOW COLUMNS FROM turnos LIKE 'medico_nombre'");
+    if ($checkColumn->rowCount() == 0) {
+        $conn->exec("ALTER TABLE turnos ADD COLUMN medico_nombre VARCHAR(100) NULL");
+    }
+} catch(PDOException $e) {
+    // Continuar si hay error
+}
+
 // Procesar la adición automática de turnos desde Citas.php
 if (isset($_GET['agregar_desde_cita']) && isset($_GET['paciente_id']) && isset($_GET['fecha'])) {
     try {
@@ -153,9 +188,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $hora_turno = isset($_POST['hora_turno']) && !empty($_POST['hora_turno']) ? 
                               $_POST['hora_turno'] : date('H:i:s');
                 
-                $sql = "INSERT INTO turnos (paciente_id, fecha_turno, hora_turno, notas, tipo_turno) VALUES (?, ?, ?, ?, ?)";
+                // Determinar médico según configuración
+                $medico_id = null;
+                $medico_nombre = null;
+                
+                if ($multi_medico && isset($_POST['medico_id']) && !empty($_POST['medico_id'])) {
+                    // Si multi_medico está habilitado y se seleccionó un médico
+                    $medico_id = $_POST['medico_id'];
+                    // Obtener el nombre del médico seleccionado
+                    $stmt_medico = $conn->prepare("SELECT nombre FROM usuarios WHERE id = ?");
+                    $stmt_medico->execute([$medico_id]);
+                    $medico_data = $stmt_medico->fetch(PDO::FETCH_ASSOC);
+                    $medico_nombre = $medico_data ? $medico_data['nombre'] : null;
+                } else {
+                    // Si no está habilitado multi_medico, usar el médico por defecto de configuración
+                    $medico_nombre = $config['medico_nombre'] ?? 'Médico Tratante';
+                }
+                
+                $sql = "INSERT INTO turnos (paciente_id, fecha_turno, hora_turno, notas, tipo_turno, medico_id, medico_nombre) VALUES (?, ?, ?, ?, ?, ?, ?)";
                 $stmt = $conn->prepare($sql);
-                $stmt->execute([$_POST['paciente_id'], $_POST['fecha_turno'], $hora_turno, $_POST['notas'], $_POST['tipo_turno']]);
+                $stmt->execute([$_POST['paciente_id'], $_POST['fecha_turno'], $hora_turno, $_POST['notas'], $_POST['tipo_turno'], $medico_id, $medico_nombre]);
                 header("location: turnos.php?fecha=" . $_POST['fecha_turno']);
                 exit();
             } catch(PDOException $e) {
@@ -270,6 +322,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <th>Paciente</th>
                                 <th>DNI</th>
                                 <th>Tipo</th>
+                                <?php if ($multi_medico): ?>
+                                <th>Médico</th>
+                                <?php endif; ?>
                                 <th>Estado</th>
                                 <th>Notas</th>
                                 <th>Acciones</th>
@@ -310,6 +365,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     echo "<td>".$row['nombre']." ".$row['apellido']."</td>";
                                     echo "<td>".$row['dni']."</td>";
                                     echo "<td>".htmlspecialchars($row['tipo_turno'] ?? 'Consulta')."</td>";
+                                    if ($multi_medico) {
+                                        echo "<td>".htmlspecialchars($row['medico_nombre'] ?? 'No asignado')."</td>";
+                                    }
                                     echo "<td>".$row['estado']."</td>";
                                     echo "<td>".$row['notas']."</td>";
                                     echo "<td>
@@ -393,6 +451,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <option value="Otro">Otro</option>
                             </select>
                         </div>
+                        <?php if ($multi_medico): ?>
+                        <div class="form-group">
+                            <label>Médico</label>
+                            <select name="medico_id" class="form-control" required>
+                                <option value="">Seleccione un médico</option>
+                                <?php foreach ($doctores as $doctor): ?>
+                                <option value="<?php echo $doctor['id']; ?>">
+                                    <?php echo htmlspecialchars($doctor['nombre']); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <?php else: ?>
+                        <div class="form-group">
+                            <label>Médico</label>
+                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($config['medico_nombre'] ?? 'Médico Tratante'); ?>" readonly>
+                            <small class="form-text text-muted">Médico asignado por defecto en configuración</small>
+                        </div>
+                        <?php endif; ?>
                         <div class="form-group">
                             <label>Notas</label>
                             <textarea name="notas" class="form-control" rows="3"></textarea>
