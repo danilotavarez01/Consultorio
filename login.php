@@ -88,13 +88,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// Manejar mensajes de logout
+// Manejar mensajes de logout y acceso
 $logout_message = '';
 if (isset($_GET['logout'])) {
     switch ($_GET['logout']) {
         case 'success':
             $logout_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i> <strong>Sesión cerrada exitosamente.</strong> Has sido desconectado del sistema.
+                <i class="fas fa-check-circle"></i> <strong>Sesión cerrada exitosamente.</strong> Has sido desconectado del sistema de forma segura.
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -102,7 +102,15 @@ if (isset($_GET['logout'])) {
             break;
         case 'inactive':
             $logout_message = '<div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <i class="fas fa-clock"></i> <strong>Sesión expirada.</strong> Tu sesión ha caducado por inactividad.
+                <i class="fas fa-clock"></i> <strong>Sesión expirada.</strong> Tu sesión ha caducado por inactividad (más de 2 horas sin actividad).
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+            break;
+        case 'forced':
+            $logout_message = '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-triangle"></i> <strong>Sesión terminada.</strong> Tu sesión fue cerrada por motivos de seguridad.
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -111,6 +119,25 @@ if (isset($_GET['logout'])) {
         default:
             $logout_message = '<div class="alert alert-info alert-dismissible fade show" role="alert">
                 <i class="fas fa-info-circle"></i> <strong>Sesión terminada.</strong> Por favor, inicia sesión nuevamente.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+            break;
+    }
+} elseif (isset($_GET['message'])) {
+    switch ($_GET['message']) {
+        case 'login_required':
+            $logout_message = '<div class="alert alert-primary alert-dismissible fade show" role="alert">
+                <i class="fas fa-sign-in-alt"></i> <strong>Acceso requerido.</strong> Debes iniciar sesión para acceder a esta página.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>';
+            break;
+        case 'no_permissions':
+            $logout_message = '<div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <i class="fas fa-ban"></i> <strong>Sin permisos.</strong> No tienes permisos para acceder a esa página.
                 <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>

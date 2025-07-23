@@ -71,10 +71,26 @@ function confirmarLogout() {
         // Log para debug
         console.log('Cerrando sesión del usuario...');
         
-        // Redirigir inmediatamente sin esperar
+        // Si existe el SessionManager, usarlo para logout
+        if (window.sessionManager) {
+            window.sessionManager.forceLogout('manual');
+            return false;
+        }
+        
+        // Fallback: redirigir directamente
         window.location.href = 'logout.php';
         return false; // Prevenir el enlace normal por si acaso
     }
     return false; // Cancelar si no confirma
+}
+
+// Función alternativa para logout sin confirmación (para casos especiales)
+function logoutDirecto() {
+    console.log('Logout directo iniciado...');
+    if (window.sessionManager) {
+        window.sessionManager.forceLogout('direct');
+    } else {
+        window.location.href = 'logout.php';
+    }
 }
 </script>
