@@ -28,6 +28,11 @@ function verificarConexion($conn) {
     }
 }
 
+// Función para obtener valor de configuración con default
+function getConfigValue($config, $key, $default = '') {
+    return isset($config[$key]) && $config[$key] !== null ? $config[$key] : $default;
+}
+
 // Verificar si el usuario está logueado
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     header("location: login.php");
@@ -47,10 +52,46 @@ $config = null;
 
 // Obtener configuración actual
 try {
+    // Verificar si la tabla existe
+    $stmt = $conn->query("SHOW TABLES LIKE 'configuracion'");
+    if ($stmt->rowCount() == 0) {
+        throw new Exception("La tabla 'configuracion' no existe");
+    }
+    
+    // Verificar si existe el registro con id = 1
+    $stmt = $conn->query("SELECT COUNT(*) as count FROM configuracion WHERE id = 1");
+    $count = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($count['count'] == 0) {
+        // Insertar registro por defecto
+        $sql_insert = "INSERT INTO configuracion (
+            id, nombre_consultorio, medico_nombre, duracion_cita, 
+            hora_inicio, hora_fin, dias_laborables, intervalo_citas,
+            moneda, zona_horaria, formato_fecha, idioma, tema_color,
+            mostrar_alertas_stock, multi_medico, whatsapp_server
+        ) VALUES (
+            1, 'Consultorio Médico', 'Dr. Médico', 30, 
+            '09:00:00', '18:00:00', '1,2,3,4,5', 30,
+            'RD$', 'America/Santo_Domingo', 'Y-m-d', 'es', 'light',
+            1, 0, 'https://api.whatsapp.com'
+        )";
+        $conn->exec($sql_insert);
+    }
+    
+    // Ahora obtener la configuración
     $stmt = $conn->query("SELECT * FROM configuracion WHERE id = 1");
     $config = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$config) {
+        throw new Exception("No se pudo cargar la configuración");
+    }
+    
 } catch(PDOException $e) {
+    $mensaje = '<div class="alert alert-danger">Error de base de datos: ' . $e->getMessage() . '</div>';
+    $config = []; // Array vacío para evitar errores
+} catch(Exception $e) {
     $mensaje = '<div class="alert alert-danger">Error al cargar la configuración: ' . $e->getMessage() . '</div>';
+    $config = []; // Array vacío para evitar errores
 }
 
 // Verificar si existe un logo
@@ -248,10 +289,40 @@ if($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action'])) {
 // Obtener configuración actual usando la nueva función de verificación
 try {
     $conn = verificarConexion($conn);
+    
+    // Verificar si existe el registro
+    $stmt = $conn->query("SELECT COUNT(*) as count FROM configuracion WHERE id = 1");
+    $count = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($count['count'] == 0) {
+        // Insertar registro por defecto si no existe
+        $sql_insert = "INSERT INTO configuracion (
+            id, nombre_consultorio, medico_nombre, duracion_cita, 
+            hora_inicio, hora_fin, dias_laborables, intervalo_citas,
+            moneda, zona_horaria, formato_fecha, idioma, tema_color,
+            mostrar_alertas_stock, multi_medico, whatsapp_server
+        ) VALUES (
+            1, 'Consultorio Médico', 'Dr. Médico', 30, 
+            '09:00:00', '18:00:00', '1,2,3,4,5', 30,
+            'RD$', 'America/Santo_Domingo', 'Y-m-d', 'es', 'light',
+            1, 0, 'https://api.whatsapp.com'
+        )";
+        $conn->exec($sql_insert);
+    }
+    
     $stmt = $conn->query("SELECT * FROM configuracion WHERE id = 1");
     $config = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$config) {
+        throw new Exception("No se pudo cargar la configuración después de la actualización");
+    }
+    
 } catch(PDOException $e) {
-    $mensaje = '<div class="alert alert-danger">Error al cargar la configuración: ' . $e->getMessage() . '</div>';
+    $mensaje .= '<div class="alert alert-danger">Error de base de datos al recargar: ' . $e->getMessage() . '</div>';
+    // Mantener el $config existente si hay error
+} catch(Exception $e) {
+    $mensaje .= '<div class="alert alert-danger">Error al recargar la configuración: ' . $e->getMessage() . '</div>';
+    // Mantener el $config existente si hay error
 }
 
 // Verificar si existe un logo
@@ -303,11 +374,11 @@ if (file_exists($directorio_logo . 'logo.png')) {
                                 <h3>Información General</h3>                                <div class="form-group">
                                     <label>Nombre del Consultorio</label>
                                     <input type="text" name="clinic_name" class="form-control" required
-                                           value="<?php echo htmlspecialchars($config['nombre_consultorio'] ?? 'Consultorio Médico'); ?>">
+                                           value="<?php echo htmlspecialchars(getConfigValue($config, 'nombre_consultorio', 'Consultorio Médico')); ?>">
                                 </div>                                <div class="form-group">
                                     <label>Nombre del Médico</label>
                                     <input type="text" name="medico_nombre" class="form-control" required
-                                           value="<?php echo htmlspecialchars($config['medico_nombre'] ?? 'Dr. Médico'); ?>">
+                                           value="<?php echo htmlspecialchars(getConfigValue($config, 'medico_nombre', 'Dr. Médico')); ?>">
                                     <small class="form-text text-muted">
                                         Este nombre aparecerá en las recetas y consultas como el médico tratante.
                                     </small>

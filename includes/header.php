@@ -3,6 +3,33 @@
 if(!isset($_SESSION)) {
     session_start();
 }
+
+// Cargar nombre del consultorio desde la base de datos
+$nombre_consultorio = 'Consultorio Médico'; // Valor por defecto
+try {
+    if (file_exists('../config.php')) {
+        require_once '../config.php';
+    } elseif (file_exists('config.php')) {
+        require_once 'config.php';
+    }
+    
+    if (isset($conn)) {
+        $stmt = $conn->query("SELECT nombre_consultorio FROM configuracion WHERE id = 1");
+        $config = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($config && !empty($config['nombre_consultorio'])) {
+            $nombre_consultorio = $config['nombre_consultorio'];
+        }
+    }
+} catch (Exception $e) {
+    // Si hay error, usar el valor por defecto
+    $nombre_consultorio = 'Consultorio Médico';
+}
+
+
+
+
+
+
 ?>
 
 <!-- Header con modo oscuro -->
@@ -12,7 +39,9 @@ if(!isset($_SESSION)) {
         <div class="header-left d-flex align-items-center">
             <i class="fas fa-stethoscope fa-2x text-primary mr-3"></i>
             <div>
-                <h4 class="mb-0" style="color: var(--text-primary);">Consultorio Médico</h4>
+                <!-- <h4 class="mb-0" style="color: var(--text-primary);">Consultorio Médico</h4> -->
+             
+             <h4 class="mb-0" style="color: var(--text-primary);"><?php echo htmlspecialchars($nombre_consultorio); ?></h4>
                 <small style="color: var(--text-secondary);">Sistema de Gestión Integral</small>
             </div>
         </div>
