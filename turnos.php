@@ -105,20 +105,39 @@ if (isset($_GET['agregar_desde_cita']) && isset($_GET['paciente_id']) && isset($
                 $doctor_nombre = $doctor ? $doctor['nombre'] : 'No especificado';
                 
                 // Crear notas con información de la cita
-                $notas = "Turno generado automáticamente desde la cita #" . $cita['id'] . ". Doctor: " . $doctor_nombre . ". " . ($cita['observaciones'] ?? '');
+                $notas = "Turno generado automáticamente desde la cita #" . $cita['id'] . ". " . ($cita['observaciones'] ?? '');
                 
-                // Insertar el nuevo turno
-                $sql = "INSERT INTO turnos (paciente_id, fecha_turno, hora_turno, notas, tipo_turno, estado) 
-                        VALUES (?, ?, ?, ?, ?, ?)";
-                $stmt = $conn->prepare($sql);
-                $stmt->execute([
-                    $cita['paciente_id'],
-                    $cita['fecha'],
-                    $cita['hora'],
-                    $notas,
-                    'Consulta',  // Tipo de turno default
-                    'pendiente'  // Estado default
-                ]);
+                // Insertar el nuevo turno con información del médico
+                if ($multi_medico) {
+                    // Si multi_medico está habilitado, usar medico_id y medico_nombre
+                    $sql = "INSERT INTO turnos (paciente_id, fecha_turno, hora_turno, notas, tipo_turno, estado, medico_id, medico_nombre) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute([
+                        $cita['paciente_id'],
+                        $cita['fecha'],
+                        $cita['hora'],
+                        $notas,
+                        'Consulta',  // Tipo de turno default
+                        'pendiente',  // Estado default
+                        $cita['doctor_id'],
+                        $doctor_nombre
+                    ]);
+                } else {
+                    // Si multi_medico no está habilitado, usar solo medico_nombre del config
+                    $sql = "INSERT INTO turnos (paciente_id, fecha_turno, hora_turno, notas, tipo_turno, estado, medico_nombre) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute([
+                        $cita['paciente_id'],
+                        $cita['fecha'],
+                        $cita['hora'],
+                        $notas,
+                        'Consulta',  // Tipo de turno default
+                        'pendiente',  // Estado default
+                        $config['medico_nombre'] ?? 'Médico Tratante'
+                    ]);
+                }
                 
                 // Actualizar el estado de la cita a "Confirmada"
                 $stmt = $conn->prepare("UPDATE citas SET estado = 'Confirmada' WHERE id = ?");
