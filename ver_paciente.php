@@ -127,15 +127,27 @@ $mostrarEnfermedades = hasPermission('manage_diseases');
                                 <div class="foto-container">
                                     <?php 
                                     if (!empty($paciente['foto'])) {
-                                        // Corregir la ruta de la foto
-                                        $rutaFotoWeb = '/uploads/pacientes/' . htmlspecialchars($paciente['foto']);
-                                        $archivoExiste = file_exists($_SERVER['DOCUMENT_ROOT'] . $rutaFotoWeb);
+                                        // Verificar si el archivo existe y construir la ruta correcta
+                                        $rutaFotoLocal = 'uploads/pacientes/' . $paciente['foto'];
+                                        $rutaFotoCompleta = __DIR__ . '/' . $rutaFotoLocal;
                                         
-                                        echo '<img src="' . $rutaFotoWeb . '" class="foto-paciente" alt="Foto del paciente" '
-                                           . 'onerror="this.onerror=null; this.src=\'imagenes/default-profile.png\';">';
+                                        if (file_exists($rutaFotoCompleta)) {
+                                            echo '<img src="' . htmlspecialchars($rutaFotoLocal) . '" class="foto-paciente" alt="Foto del paciente" '
+                                               . 'onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">';
+                                            echo '<div class="foto-paciente d-none align-items-center justify-content-center bg-light text-muted" style="display:none!important;">'
+                                               . '<i class="fas fa-image fa-2x"></i><br>'
+                                               . '<small class="text-muted mt-2">Error al cargar foto</small>'
+                                               . '</div>';
+                                        } else {
+                                            echo '<div class="foto-paciente d-flex align-items-center justify-content-center bg-warning text-dark">'
+                                               . '<i class="fas fa-exclamation-triangle fa-2x"></i><br>'
+                                               . '<small class="text-muted mt-2">Archivo no encontrado</small><br>'
+                                               . '<small class="text-muted">' . htmlspecialchars($paciente['foto']) . '</small>'
+                                               . '</div>';
+                                        }
                                     } else {
                                         echo '<div class="foto-paciente d-flex align-items-center justify-content-center bg-light text-muted">'
-                                           . '<i class="fas fa-user-circle fa-3x"></i>'
+                                           . '<i class="fas fa-user-circle fa-3x"></i><br>'
                                            . '<small class="text-muted mt-2">Sin foto</small>'
                                            . '</div>';
                                     }

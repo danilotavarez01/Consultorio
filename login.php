@@ -93,12 +93,8 @@ $logout_message = '';
 if (isset($_GET['logout'])) {
     switch ($_GET['logout']) {
         case 'success':
-            $logout_message = '<div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fas fa-check-circle"></i> <strong>Sesión cerrada exitosamente.</strong> Has sido desconectado del sistema de forma segura.
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>';
+            // No mostrar mensaje de logout exitoso
+            $logout_message = '';
             break;
         case 'inactive':
             $logout_message = '<div class="alert alert-warning alert-dismissible fade show" role="alert">

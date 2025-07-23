@@ -224,9 +224,14 @@ if ($mostrarEnfermedades) {
                                 // Mostrar foto del paciente o imagen predeterminada
                                 echo "<td>";
                                 if (!empty($row['foto'])) {
-                                    echo "<img src='uploads/pacientes/" . htmlspecialchars($row['foto']) . "' class='foto-paciente-lista' alt='Foto'>";
+                                    $rutaFoto = 'uploads/pacientes/' . htmlspecialchars($row['foto']);
+                                    if (file_exists($rutaFoto)) {
+                                        echo "<img src='$rutaFoto' class='foto-paciente-lista' alt='Foto' onerror=\"this.src='https://via.placeholder.com/40/cccccc/666666?text=Error'\">";
+                                    } else {
+                                        echo "<img src='https://via.placeholder.com/40/ffcc00/000000?text=404' class='foto-paciente-lista' alt='Archivo no encontrado' title='Archivo no encontrado: " . htmlspecialchars($row['foto']) . "'>";
+                                    }
                                 } else {
-                                    echo "<img src='https://via.placeholder.com/40' class='foto-paciente-lista' alt='Sin foto'>";
+                                    echo "<img src='https://via.placeholder.com/40/f0f0f0/999999?text=Sin+Foto' class='foto-paciente-lista' alt='Sin foto'>";
                                 }
                                 echo "</td>";
                                 echo "<td>".$row['id']."</td>";

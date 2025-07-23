@@ -39,18 +39,7 @@ if (isset($_GET['paciente_id']) && !empty($_GET['paciente_id'])) {
 
 // Procesar el formulario de nueva consulta
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] == 'crear_consulta') {
-    // Si está vacío, mostrar un mensaje de alerta
-    if (empty($_POST['dientes_array_json']) || $_POST['dientes_array_json'] === '[]') {
-        echo "<p style='background:#f44336; color:white; padding:10px;'><strong>⚠️ ALERTA:</strong> No se recibieron dientes seleccionados en el formulario.</p>";
-        echo "<p>Esto puede ocurrir por:</p>";
-        echo "<ul>";
-        echo "<li>El usuario no seleccionó ningún diente</li>";
-        echo "<li>El odontograma no sincronizó correctamente los dientes al JSON</li>";
-        echo "<li>Hay un problema en el JavaScript que actualiza el campo JSON</li>";
-        echo "</ul>";
-    }
-    echo "</div>";
-    
+    // Nota: Procesamiento de dientes seleccionados sin output HTML
     $transactionStarted = false;
     try {
         $conn->beginTransaction();
@@ -99,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                 // echo "<p style='background:#e8f5e9; padding:5px;'><strong>✅ JSON de dientes recibido:</strong> " 
                 //      . count($dientes_array_from_json) . " dientes en formato JSON estructurado</p>";
             } else {
-                echo "<p style='background:#ffccbc; padding:5px;'><strong>⚠️ ERROR:</strong> El formato JSON de dientes_array_json no es válido</p>";
+                // Error en formato JSON - se registra para debug pero no se muestra
                 $dientes_valor = '';
                 $campos_adicionales['dientes_seleccionados'] = '';
             }
@@ -115,19 +104,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         
         // Convertir el array a JSON solo si tiene contenido
         $campos_adicionales_json = !empty($campos_adicionales) ? json_encode($campos_adicionales) : null;
-        
-        // Ya no se muestra información sobre el array de dientes seleccionados
-
-        // Ya no se muestra información sobre el último diente seleccionado
-        
-        // Mostrar el JSON formateado como ejemplo
-        // if ($campos_adicionales_json) {
-        //     echo "<div style='background: #e8f5e8; padding: 10px; border: 1px solid #4caf50; margin: 10px 0;'>";
-        //     echo "<h4>✅ JSON final que se guardará:</h4>";
-        //     echo "<pre style='background: white; padding: 10px; border: 1px solid #ddd;'>" . json_encode(json_decode($campos_adicionales_json), JSON_PRETTY_PRINT) . "</pre>";
-        //     echo "</div>";
-        // }
-        echo "</div>";
         
         // Insertar consulta with campos adicionales y dientes seleccionados
         $sql = "INSERT INTO historial_medico (

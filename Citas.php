@@ -45,51 +45,9 @@ try {    $tableExists = $conn->query("SHOW TABLES LIKE 'citas'")->rowCount() > 0
     $db_connected = false;
     $db_error = $e->getMessage();
 }
-?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title><?php echo $title; ?> - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <link rel="stylesheet" href="css/dark-mode.css">
-    <style>
-        .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
-        .sidebar a { color: #fff; padding: 10px 15px; display: block; }
-        .sidebar a:hover { background-color: #454d55; text-decoration: none; }
-        .content { padding: 20px; }
-        /* Estilos para los filtros */
-        .filtro-badge { margin-right: 5px; }
-        .form-inline .form-group { margin-bottom: 10px; }
-        
-        /* Mejoras responsive para el formulario de búsqueda */
-        @media (max-width: 768px) {
-            .form-inline {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .form-inline .form-group {
-                width: 100%;
-                margin-right: 0;
-            }
-            .form-inline .btn {
-                margin-top: 10px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Header con modo oscuro -->
-    <?php include 'includes/header.php'; ?>    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <?php include 'sidebar.php'; ?>
-            
-            <!-- Content -->
-            <div class="col-md-10 content">
-<?php
+// PROCESAMIENTO DE FORMULARIOS Y REDIRECCIONES (ANTES DE CUALQUIER SALIDA HTML)
+
 // Procesar formulario
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Obtener datos del formulario
@@ -158,7 +116,51 @@ if (isset($_GET['editar'])) {
     $stmt->execute([$id]);
     $cita = $stmt->fetch(PDO::FETCH_ASSOC);
 }
+?>
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title><?php echo $title; ?> - Consultorio Médico</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
+        .sidebar a { color: #fff; padding: 10px 15px; display: block; }
+        .sidebar a:hover { background-color: #454d55; text-decoration: none; }
+        .content { padding: 20px; }
+        /* Estilos para los filtros */
+        .filtro-badge { margin-right: 5px; }
+        .form-inline .form-group { margin-bottom: 10px; }
+        
+        /* Mejoras responsive para el formulario de búsqueda */
+        @media (max-width: 768px) {
+            .form-inline {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .form-inline .form-group {
+                width: 100%;
+                margin-right: 0;
+            }
+            .form-inline .btn {
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header con modo oscuro -->
+    <?php include 'includes/header.php'; ?>    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <?php include 'sidebar.php'; ?>
+            
+            <!-- Content -->
+            <div class="col-md-10 content">
+<?php
 // Obtener lista de citas
 $sql = "
     SELECT c.id, c.fecha, c.hora, c.paciente_id, c.doctor_id,
