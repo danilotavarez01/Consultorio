@@ -1,0 +1,262 @@
+<?php
+session_start();
+require_once "permissions.php";
+
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    header("location: login.php");
+    exit;
+}
+
+// Verificar permisos para gestionar pacientes
+if (!hasPermission('manage_patients')) {
+    header("location: unauthorized.php");
+    exit;
+}
+
+require_once "config.php";
+
+$consulta = null;
+$error = null;
+$success = null;
+
+// Verificar si se proporcionó un ID de consulta
+if (isset($_GET['id']) && !empty($_GET['id'])) {
+    $id = $_GET['id'];
+    
+    // Obtener datos de la consulta y del paciente - Consulta simplificada sin JOINs problemáticos
+    $sql = "SELECT h.*, p.nombre, p.apellido, p.id as paciente_id
+            FROM historial_medico h 
+            JOIN pacientes p ON h.paciente_id = p.id 
+            WHERE h.id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([$id]);
+    $consulta = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$consulta) {
+        $error = "Consulta no encontrada";
+    }
+} else {
+    $error = "ID de consulta no proporcionado";
+}
+
+// Procesar el formulario de edición
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['action'] == 'editar_consulta') {
+    try {
+        $conn->beginTransaction();
+        
+        // Preparar el array de campos personalizados
+        $campos_adicionales = [];
+        if (isset($_POST['campos_adicionales']) && is_array($_POST['campos_adicionales'])) {
+            $campos_adicionales = json_encode($_POST['campos_adicionales']);
+        }
+        
+        // Actualizar consulta
+        $sql = "UPDATE historial_medico 
+                SET fecha = ?, 
+                    motivo_consulta = ?, 
+                    diagnostico = ?, 
+                    tratamiento = ?, 
+                    presion_sanguinea = ?, 
+                    frecuencia_cardiaca = ?, 
+                    observaciones = ?,
+                    peso = ?,
+                    campos_adicionales = ?
+                WHERE id = ?";
+        
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(1, $_POST['fecha'], PDO::PARAM_STR);
+        $stmt->bindParam(2, $_POST['motivo_consulta'], PDO::PARAM_STR);
+        $stmt->bindParam(3, $_POST['diagnostico'], PDO::PARAM_STR);
+        $stmt->bindParam(4, $_POST['tratamiento'], PDO::PARAM_STR);
+        $stmt->bindParam(5, $_POST['presion_sanguinea'], PDO::PARAM_STR);
+        $stmt->bindParam(6, $_POST['frecuencia_cardiaca'], PDO::PARAM_INT);
+        $stmt->bindParam(7, $_POST['observaciones'], PDO::PARAM_STR);
+        $stmt->bindParam(8, $_POST['peso'], PDO::PARAM_STR);
+        $stmt->bindParam(9, $campos_adicionales, PDO::PARAM_STR);
+        $stmt->bindParam(10, $_POST['consulta_id'], PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $conn->commit();
+        $success = "Consulta actualizada correctamente";
+          // Refrescar los datos de la consulta con la consulta correcta
+        $refresh_sql = "SELECT h.*, p.nombre, p.apellido, p.id as paciente_id
+                       FROM historial_medico h 
+                       JOIN pacientes p ON h.paciente_id = p.id 
+                       WHERE h.id = ?";
+        $stmt = $conn->prepare($refresh_sql);
+        $stmt->execute([$_POST['consulta_id']]);
+        $consulta = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+    } catch (Exception $e) {
+        $conn->rollBack();
+        $error = "Error: " . $e->getMessage();
+    }
+}
+
+// Obtener configuración del consultorio para el nombre del médico
+try {
+    $stmt = $conn->query("SELECT * FROM configuracion WHERE id = 1");
+    $config = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // Si hay error al obtener configuración, continuar
+}
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Consulta - Consultorio Médico</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
+        .sidebar a { color: #fff; padding: 10px 15px; display: block; }
+        .sidebar a:hover { background-color: #454d55; text-decoration: none; }
+        .content { padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <?php include 'sidebar.php'; ?>
+
+            <!-- Content -->
+            <div class="col-md-10 content">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Editar Consulta Médica</h2>
+                    <?php if ($consulta): ?>
+                    <div>
+                        <a href="imprimir_receta.php?id=<?php echo $consulta['id']; ?>" class="btn btn-primary mr-2">
+                            <i class="fas fa-print"></i> Imprimir Receta
+                        </a>
+                        <a href="historial_medico.php?id=<?php echo $consulta['paciente_id']; ?>" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver al Historial
+                        </a>
+                    </div>
+                    <?php else: ?>
+                    <a href="pacientes.php" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver a Pacientes
+                    </a>
+                    <?php endif; ?>
+                </div>
+                <hr>
+
+                <?php if (isset($error)): ?>
+                <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
+
+                <?php if (isset($success)): ?>
+                <div class="alert alert-success"><?php echo $success; ?></div>
+                <?php endif; ?>
+
+                <?php if ($consulta): ?>
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Editar consulta para: <?php echo htmlspecialchars($consulta['nombre'] . ' ' . $consulta['apellido']); ?></h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" id="consultaForm">
+                            <input type="hidden" name="action" value="editar_consulta">
+                            <input type="hidden" name="consulta_id" value="<?php echo $consulta['id']; ?>">
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label>Fecha de Consulta</label>
+                                    <input type="date" name="fecha" class="form-control" value="<?php echo $consulta['fecha']; ?>" required>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label>Médico</label>
+                                    <input type="text" class="form-control" value="<?php echo htmlspecialchars($config['medico_nombre'] ?? 'Médico Tratante'); ?>" readonly>
+                                    <input type="hidden" name="doctor_id" id="doctor_id" value="<?php echo $consulta['doctor_id']; ?>">
+                                </div>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group col-md-4">
+                                    <label>Presión Sanguínea (mmHg)</label>
+                                    <input type="text" name="presion_sanguinea" class="form-control" placeholder="Ej: 120/80"
+                                           value="<?php echo htmlspecialchars($consulta['presion_sanguinea'] ?? ''); ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Frecuencia Cardíaca (lpm)</label>
+                                    <input type="number" name="frecuencia_cardiaca" class="form-control" placeholder="Latidos por minuto"
+                                           value="<?php echo htmlspecialchars($consulta['frecuencia_cardiaca'] ?? ''); ?>">
+                                </div>
+                                <div class="form-group col-md-4">
+                                    <label>Peso (lb)</label>
+                                    <input type="number" step="0.01" name="peso" class="form-control" placeholder="Ej: 75.5"
+                                           value="<?php echo htmlspecialchars($consulta['peso'] ?? ''); ?>">
+                                </div>
+                            </div>                            <!-- Contenedor para campos dinámicos según la especialidad -->
+                            <div id="campos_dinamicos" data-campos-actuales='<?php 
+                                if (isset($consulta['campos_adicionales']) && !empty($consulta['campos_adicionales'])) {
+                                    echo htmlspecialchars($consulta['campos_adicionales']);
+                                } else {
+                                    echo '{}'; 
+                                }
+                            ?>'></div>
+                            
+                            <div class="form-group">
+                                <label>Motivo de Consulta</label>
+                                <textarea name="motivo_consulta" class="form-control" rows="3" required><?php echo htmlspecialchars($consulta['motivo_consulta']); ?></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Diagnóstico</label>
+                                <textarea name="diagnostico" class="form-control" rows="3" required><?php echo htmlspecialchars($consulta['diagnostico']); ?></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Tratamiento</label>
+                                <textarea name="tratamiento" class="form-control" rows="3" required><?php echo htmlspecialchars($consulta['tratamiento']); ?></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Observaciones</label>
+                                <textarea name="observaciones" class="form-control" rows="3"><?php echo htmlspecialchars($consulta['observaciones']); ?></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="js/consulta_dinamica_simple.js"></script>
+    <!-- Script de depuración para diagnosticar problemas -->
+    <script src="js/debug_consulta.js"></script>
+    
+    <!-- Mensaje para ayudar a diagnosticar problemas -->
+    <div class="container mt-4" style="display:none" id="debug-help">
+        <div class="alert alert-info">
+            <h5>Ayuda de diagnóstico</h5>
+            <p>Si hay problemas con la carga de campos dinámicos:</p>
+            <ol>
+                <li>Abra la consola del navegador (F12) para ver mensajes de error</li>
+                <li>Verifique que los archivos PHP existen en el servidor</li>
+                <li>Verifique que la configuración de especialidad está correcta en la base de datos</li>
+            </ol>
+            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('debug-help').style.display='none'">Cerrar</button>
+        </div>
+    </div>
+    
+    <script>
+        // Mostrar ayuda de diagnóstico si hay error en la carga de campos
+        $(document).ready(function() {
+            setTimeout(function() {
+                if ($('#campos_dinamicos').text().includes('No se pudieron cargar')) {
+                    $('#debug-help').show();
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

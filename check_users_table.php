@@ -1,0 +1,1 @@
+<?php require_once 'config.php'; \ = \->query('SHOW COLUMNS FROM usuarios'); echo 'Estructura de la tabla usuarios:\n'; while(\ = \->fetch(PDO::FETCH_ASSOC)) { echo \['Field'] . ' - ' . \['Type'] . '\n'; } ?>

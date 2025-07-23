@@ -1,0 +1,1 @@
+<?php require_once 'config.php'; try { \ = \->query('SHOW COLUMNS FROM configuracion'); while(\ = \->fetch(PDO::FETCH_ASSOC)) { echo \['Field'] . ' - ' . \['Type'] . PHP_EOL; } } catch(PDOException \) { echo \->getMessage(); } ?>

@@ -1,0 +1,177 @@
+Test started at 2025-06-18 21:27:01
+Checking historial_medico table structure
+Columns found: Array
+(
+    [id] => int(11)
+    [paciente_id] => int(11)
+    [fecha] => date
+    [motivo_consulta] => text
+    [diagnostico] => text
+    [tratamiento] => text
+    [notas] => text
+    [doctor_id] => int(11)
+    [fecha_registro] => timestamp
+    [observaciones] => text
+    [campos_adicionales] => text
+    [especialidad_id] => int(11)
+    [medico] => varchar(100)
+    [presion_sanguinea] => varchar(20)
+    [frecuencia_cardiaca] => int(11)
+    [tipo_consulta] => varchar(50)
+    [peso] => varchar(10)
+)
+
+All required columns are present
+Using patient ID: 2
+Preparing to insert test data: Array
+(
+    [paciente_id] => 2
+    [doctor_id] => 1
+    [fecha] => 2025-06-18
+    [motivo_consulta] => Test motivo consulta
+    [diagnostico] => Test diagnóstico
+    [tratamiento] => Test tratamiento
+    [observaciones] => Test observaciones
+    [campos_adicionales] => {"temp":"36.5","presion":"120\/80"}
+    [especialidad_id] => 1
+)
+
+SQL: INSERT INTO historial_medico (paciente_id, doctor_id, fecha, motivo_consulta, diagnostico, tratamiento, observaciones, campos_adicionales, especialidad_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+SUCCESS: Record inserted with ID: 26
+Inserted data: Array
+(
+    [id] => 26
+    [paciente_id] => 2
+    [fecha] => 2025-06-18
+    [motivo_consulta] => Test motivo consulta
+    [diagnostico] => Test diagnóstico
+    [tratamiento] => Test tratamiento
+    [notas] => 
+    [doctor_id] => 1
+    [fecha_registro] => 2025-06-18 17:27:01
+    [observaciones] => Test observaciones
+    [campos_adicionales] => {"temp":"36.5","presion":"120\/80"}
+    [especialidad_id] => 1
+    [medico] => 
+    [presion_sanguinea] => 
+    [frecuencia_cardiaca] => 
+    [tipo_consulta] => Consulta
+    [peso] => 
+)
+
+Test completed successfully!
+get_campos_emergencia.php ejecutado: 2025-06-20 13:07:08
+get_campos_emergencia.php ejecutado: 2025-06-20 13:07:51
+get_campos_emergencia.php ejecutado: 2025-06-20 13:08:01
+2025-06-20 13:16:42 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:16:42 - Página editar_consulta.php accedida - ID: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:16:42 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:16:42 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:16:55 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:16:55 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:01 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:01 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:04 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:04 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:04 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:04 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:06 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:06 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:06 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:06 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:07 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:07 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:08 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:08 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:11 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:11 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:11 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:11 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:12 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:12 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:12 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:12 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:16 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:16 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:16 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:16 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:17 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:17 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:17 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:17 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:17 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:17 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:18 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:18 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:25 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:25 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:27 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:27 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:28 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:28 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:29 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:29 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:29 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:29 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:30 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:30 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:30 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:30 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:31 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:32 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:32 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:32 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:32 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:45 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:45 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:47 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:47 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:48 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:48 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:48 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:48 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:48 - [SESSION] - Sesión iniciada correctamente en ruta: C:\inetpub\wwwroot\Consultorio2/temp/sessions - e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:17:48 - Acceso a login.php - ID sesión: e2dic8gv796pohei71ps7cek2i
+2025-06-20 13:21:12 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:14 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:14 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:17 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:19 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:19 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:20 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:25 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:26 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:28 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:29 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:29 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:21:31 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:07 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:07 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:10 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:11 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:11 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:17 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:21 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:45 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:22:48 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:25:21 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:25:29 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:26:22 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:26:23 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:26:23 - [SIMPLE_SESSION] - Iniciando sesión
+2025-06-20 13:26:29 - [SIMPLE_SESSION] - Iniciando sesión
+get_campos_emergencia.php ejecutado: 2025-06-20 13:26:42
+get_campos_emergencia.php ejecutado: 2025-06-20 13:26:50
+get_campos_emergencia.php ejecutado: 2025-06-20 13:27:10
+get_campos_emergencia.php ejecutado: 2025-06-20 13:29:14
+get_campos_emergencia.php ejecutado: 2025-07-02 20:52:10
+get_campos_emergencia.php ejecutado: 2025-07-02 21:22:39
+get_campos_emergencia.php ejecutado: 2025-07-03 15:02:34
+get_campos_emergencia.php ejecutado: 2025-07-08 14:55:21

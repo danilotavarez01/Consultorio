@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Básico de Ventanas Emergentes</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test { margin: 15px 0; padding: 15px; border: 1px solid #ccc; background: #f9f9f9; }
+        button { padding: 10px 20px; margin: 5px; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <h2>🔧 Test Básico de Ventanas Emergentes</h2>
+    
+    <div class="test">
+        <h4>Test 1: Abrir Ventana Simple</h4>
+        <button onclick="testVentanaSimple()">Abrir Google en Nueva Ventana</button>
+        <div id="resultado1"></div>
+    </div>
+    
+    <div class="test">
+        <h4>Test 2: Abrir Página Local</h4>
+        <button onclick="testVentanaLocal()">Abrir Página de Diagnóstico</button>
+        <div id="resultado2"></div>
+    </div>
+    
+    <div class="test">
+        <h4>Test 3: Abrir Recibo Directamente</h4>
+        <button onclick="testRecibo()">Abrir imprimir_recibo.php</button>
+        <div id="resultado3"></div>
+    </div>
+    
+    <div class="test">
+        <h4>Test 4: Información del Navegador</h4>
+        <div id="infoNavegador"></div>
+    </div>
+    
+    <p><a href="facturacion.php">← Volver a Facturación</a> | <a href="diagnostico_impresion.php">🔧 Diagnóstico</a></p>
+    
+    <script>
+        // Mostrar información del navegador
+        document.getElementById('infoNavegador').innerHTML = 
+            '<strong>User Agent:</strong><br>' + navigator.userAgent + '<br><br>' +
+            '<strong>Cookies habilitadas:</strong> ' + (navigator.cookieEnabled ? 'Sí' : 'No') + '<br>' +
+            '<strong>Idioma:</strong> ' + navigator.language + '<br>' +
+            '<strong>Plataforma:</strong> ' + navigator.platform;
+        
+        function testVentanaSimple() {
+            console.log('Test 1: Abriendo ventana simple...');
+            const resultado = document.getElementById('resultado1');
+            
+            const ventana = window.open('https://www.google.com', 'test1', 'width=600,height=400');
+            
+            if (ventana) {
+                resultado.innerHTML = '<span style="color: green;">✅ Ventana abierta exitosamente</span>';
+                console.log('Ventana simple: OK');
+            } else {
+                resultado.innerHTML = '<span style="color: red;">❌ No se pudo abrir la ventana (bloqueada)</span>';
+                console.log('Ventana simple: BLOQUEADA');
+            }
+        }
+        
+        function testVentanaLocal() {
+            console.log('Test 2: Abriendo página local...');
+            const resultado = document.getElementById('resultado2');
+            
+            const ventana = window.open('diagnostico_impresion.php', 'test2', 'width=800,height=600');
+            
+            if (ventana) {
+                resultado.innerHTML = '<span style="color: green;">✅ Página local abierta exitosamente</span>';
+                console.log('Página local: OK');
+            } else {
+                resultado.innerHTML = '<span style="color: red;">❌ No se pudo abrir la página local</span>';
+                console.log('Página local: ERROR');
+            }
+        }
+        
+        function testRecibo() {
+            console.log('Test 3: Abriendo recibo...');
+            const resultado = document.getElementById('resultado3');
+            
+            // Primero probar con parámetro de BD
+            const ventana = window.open('imprimir_recibo.php?pago_id=68', 'test3', 'width=400,height=600,scrollbars=yes,resizable=yes');
+            
+            if (ventana) {
+                resultado.innerHTML = '<span style="color: green;">✅ Recibo abierto exitosamente</span>';
+                console.log('Recibo: OK');
+                
+                // Verificar si la ventana se carga correctamente
+                setTimeout(function() {
+                    if (ventana.closed) {
+                        resultado.innerHTML += '<br><span style="color: orange;">⚠️ La ventana se cerró rápidamente</span>';
+                    } else {
+                        try {
+                            const titulo = ventana.document.title;
+                            resultado.innerHTML += '<br><span style="color: blue;">ℹ️ Título: ' + titulo + '</span>';
+                        } catch (e) {
+                            resultado.innerHTML += '<br><span style="color: orange;">⚠️ No se pudo acceder al contenido de la ventana</span>';
+                        }
+                    }
+                }, 2000);
+                
+            } else {
+                resultado.innerHTML = '<span style="color: red;">❌ No se pudo abrir el recibo</span>';
+                console.log('Recibo: BLOQUEADO');
+            }
+        }
+    </script>
+</body>
+</html>

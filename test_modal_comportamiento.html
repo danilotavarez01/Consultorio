@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Modal Aparición</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body class="p-4">
+    <h2>Test: Modal NO debe aparecer automáticamente</h2>
+    
+    <div id="status" class="alert alert-info">
+        Verificando estado del modal...
+    </div>
+    
+    <!-- Modal igual al de facturación pero sin PHP -->
+    <div class="modal fade" id="modalImprimirRecibo" tabindex="-1" data-backdrop="static" data-keyboard="false" style="display: none;">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-success text-white border-0">
+                    <h4 class="modal-title w-100 text-center mb-0">
+                        <i class="fas fa-check-circle fa-lg mr-2"></i>¡TEST MODAL!
+                    </h4>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <p>Este modal NO debe aparecer automáticamente.</p>
+                    <button type="button" class="btn btn-primary" onclick="mostrarModal()">Mostrar Modal Manualmente</button>
+                </div>
+                <div class="modal-footer border-0 justify-content-center pb-4">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <h3>Controles de Prueba:</h3>
+        <button class="btn btn-success" onclick="mostrarModal()">Mostrar Modal</button>
+        <button class="btn btn-danger" onclick="ocultarModal()">Ocultar Modal</button>
+        <button class="btn btn-info" onclick="verificarEstado()">Verificar Estado</button>
+    </div>
+    
+    <div id="log" class="mt-4">
+        <h4>Log:</h4>
+        <div id="logContent" class="border p-2" style="background: #f8f9fa; height: 200px; overflow-y: auto;"></div>
+    </div>
+    
+    <script>
+        function log(mensaje) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logContent = document.getElementById('logContent');
+            logContent.innerHTML += `[${timestamp}] ${mensaje}<br>`;
+            logContent.scrollTop = logContent.scrollHeight;
+            console.log(mensaje);
+        }
+        
+        function mostrarModal() {
+            log('Intentando mostrar modal...');
+            try {
+                $('#modalImprimirRecibo').modal('show');
+                log('✅ Modal mostrado correctamente');
+            } catch (e) {
+                log('❌ Error mostrando modal: ' + e.message);
+            }
+        }
+        
+        function ocultarModal() {
+            log('Ocultando modal...');
+            try {
+                $('#modalImprimirRecibo').modal('hide');
+                log('✅ Modal ocultado correctamente');
+            } catch (e) {
+                log('❌ Error ocultando modal: ' + e.message);
+            }
+        }
+        
+        function verificarEstado() {
+            const modal = $('#modalImprimirRecibo');
+            const isVisible = modal.hasClass('show') || modal.is(':visible');
+            const display = modal.css('display');
+            
+            log(`Estado del modal:`);
+            log(`- Visible: ${isVisible}`);
+            log(`- Display: ${display}`);
+            log(`- Clases: ${modal.attr('class')}`);
+            
+            document.getElementById('status').innerHTML = 
+                `Modal visible: <strong>${isVisible ? 'SÍ' : 'NO'}</strong> | Display: <strong>${display}</strong>`;
+        }
+        
+        $(document).ready(function() {
+            log('Página cargada - verificando modal...');
+            
+            // Verificar que el modal NO se muestre automáticamente
+            setTimeout(function() {
+                verificarEstado();
+                const modal = $('#modalImprimirRecibo');
+                const isVisible = modal.hasClass('show') || modal.is(':visible');
+                
+                if (isVisible) {
+                    log('🔴 PROBLEMA: El modal aparece automáticamente cuando NO debería');
+                    document.getElementById('status').className = 'alert alert-danger';
+                    document.getElementById('status').innerHTML = '🔴 PROBLEMA: Modal aparece automáticamente';
+                } else {
+                    log('✅ CORRECTO: El modal NO aparece automáticamente');
+                    document.getElementById('status').className = 'alert alert-success';
+                    document.getElementById('status').innerHTML = '✅ CORRECTO: Modal oculto por defecto';
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

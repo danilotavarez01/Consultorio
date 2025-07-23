@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Odontograma - Seleccion de Dientes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        h2 {
+            color: #0056b3;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .odontograma-svg {
+            display: block;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #0001;
+        }
+        .tooth-shape {
+            cursor: pointer;
+            fill: url(#coronaGrad);
+            stroke: #333;
+            stroke-width: 1.5;
+            filter: drop-shadow(0 1px 2px #0002);
+            transition: fill 0.2s, stroke-width 0.2s, filter 0.2s;
+        }
+        .tooth-shape:hover {
+            fill: url(#coronaGradHover);
+            stroke-width: 2.5;
+            filter: drop-shadow(0 2px 6px #1976d255);
+        }
+        .tooth-selected {
+            fill: url(#coronaGradSel) !important;
+            stroke: #ff6347;
+            stroke-width: 3 !important;
+            filter: drop-shadow(0 2px 8px #ff634755);
+            /* Quitar animación de escala */
+            transform: none;
+        }
+        .tooth-root {
+            fill: url(#raizGrad);
+            stroke: #bfa76f;
+            stroke-width: 1.2;
+        }
+        .tooth-separator {
+            stroke: #bbb;
+            stroke-width: 1;
+        }
+        .tooth-label {
+            font-size: 13px;
+            text-anchor: middle;
+            fill: #333;
+            pointer-events: none;
+            font-weight: bold;
+        }
+        .selected-teeth {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #003d82;
+        }
+        .tooth-tooltip {
+            position: absolute;
+            background: #fffbe7;
+            border: 1px solid #bfa76f;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 15px;
+            color: #333;
+            pointer-events: none;
+            box-shadow: 0 2px 8px #0002;
+            z-index: 10;
+            display: none;
+        }
+        .leyenda {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            margin: 18px 0 10px 0;
+            justify-content: center;
+        }
+        .leyenda-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 15px;
+        }
+        .leyenda-svg {
+            width: 28px; height: 32px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Odontograma - Seleccion de Dientes</h2>
+    <div class="leyenda">
+        <span class="leyenda-item"><svg class="leyenda-svg"><ellipse cx="14" cy="16" rx="12" ry="15" fill="url(#coronaGrad)" stroke="#333" stroke-width="1.5"/></svg> Normal</span>
+        <span class="leyenda-item"><svg class="leyenda-svg"><ellipse cx="14" cy="16" rx="12" ry="15" fill="url(#coronaGradSel)" stroke="#ff6347" stroke-width="3"/></svg> Seleccionado</span>
+        <span class="leyenda-item"><svg class="leyenda-svg"><ellipse cx="14" cy="16" rx="12" ry="15" fill="url(#coronaGradHover)" stroke="#1976d2" stroke-width="2.5"/></svg> Hover</span>
+    </div>
+    <form action="guardar_dientes.php" method="post">
+        <input type="hidden" name="seleccionados" id="seleccionados">
+        <svg id="odontograma" class="odontograma-svg" width="900" height="520" viewBox="0 0 900 520">
+            <defs>
+                <linearGradient id="coronaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#fff"/>
+                    <stop offset="100%" stop-color="#e0e0e0"/>
+                </linearGradient>
+                <linearGradient id="coronaGradHover" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#b3e5fc"/>
+                    <stop offset="100%" stop-color="#e0f7fa"/>
+                </linearGradient>
+                <linearGradient id="coronaGradSel" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ffb39b"/>
+                    <stop offset="100%" stop-color="#ff6347"/>
+                </linearGradient>
+                <linearGradient id="raizGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#ffe082"/>
+                    <stop offset="100%" stop-color="#fffde7"/>
+                </linearGradient>
+            </defs>
+            <!-- Etiqueta Maxilar Superior -->
+            <text x="450" y="50" text-anchor="middle" font-size="28" fill="#1976d2" font-weight="bold">Maxilar Superior</text>
+            <ellipse cx="450" cy="170" rx="350" ry="90" fill="#e3f2fd" opacity="0.5" />
+            <!-- Líneas divisorias de cuadrantes superiores -->
+            <line x1="450" y1="80" x2="450" y2="260" stroke="#bbb" stroke-width="2" stroke-dasharray="8,6" />
+            <line x1="250" y1="170" x2="650" y2="170" stroke="#bbb" stroke-width="2" stroke-dasharray="8,6" />
+            <!-- Dientes superiores (arco) -->
+            <g id="arc-superior"></g>
+            <!-- Cuadrantes -->
+            <text x="270" y="100" font-size="16" fill="#1976d2">1er</text>
+            <text x="630" y="100" font-size="16" fill="#1976d2">2do</text>
+            
+            <!-- Etiqueta Maxilar Inferior -->
+            <text x="450" y="520" text-anchor="middle" font-size="28" fill="#388e3c" font-weight="bold">Maxilar Inferior</text>
+            <ellipse cx="450" cy="370" rx="350" ry="90" fill="#e8f5e9" opacity="0.5" />
+            <!-- Líneas divisorias de cuadrantes inferiores -->
+            <line x1="450" y1="280" x2="450" y2="460" stroke="#bbb" stroke-width="2" stroke-dasharray="8,6" />
+            <line x1="250" y1="370" x2="650" y2="370" stroke="#bbb" stroke-width="2" stroke-dasharray="8,6" />
+            <!-- Dientes inferiores (arco) -->
+            <g id="arc-inferior"></g>
+            <!-- Cuadrantes -->
+            <text x="270" y="490" font-size="16" fill="#388e3c">3er</text>
+            <text x="630" y="490" font-size="16" fill="#388e3c">4to</text>
+        </svg>
+        <div class="selected-teeth">
+            <strong>Dientes seleccionados:</strong> <span id="seleccionados-texto">Ninguno</span>
+        </div>
+        <button type="submit">Guardar Selección</button>
+    </form>
+</div>
+<script>
+// --- Datos de dientes y nombres ---
+const dientes = [
+    // Superior derecha (cuadrante 1)
+    { num: 18, nombre: 'Tercer molar sup. der.' },
+    { num: 17, nombre: 'Segundo molar sup. der.' },
+    { num: 16, nombre: 'Primer molar sup. der.' },
+    { num: 15, nombre: 'Segundo premolar sup. der.' },
+    { num: 14, nombre: 'Primer premolar sup. der.' },
+    { num: 13, nombre: 'Canino sup. der.' },
+    { num: 12, nombre: 'Incisivo lateral sup. der.' },
+    { num: 11, nombre: 'Incisivo central sup. der.' },
+    // Superior izquierda (cuadrante 2)
+    { num: 21, nombre: 'Incisivo central sup. izq.' },
+    { num: 22, nombre: 'Incisivo lateral sup. izq.' },
+    { num: 23, nombre: 'Canino sup. izq.' },
+    { num: 24, nombre: 'Primer premolar sup. izq.' },
+    { num: 25, nombre: 'Segundo premolar sup. izq.' },
+    { num: 26, nombre: 'Primer molar sup. izq.' },
+    { num: 27, nombre: 'Segundo molar sup. izq.' },
+    { num: 28, nombre: 'Tercer molar sup. izq.' },
+    // Inferior izquierda (cuadrante 3)
+    { num: 38, nombre: 'Tercer molar inf. izq.' },
+    { num: 37, nombre: 'Segundo molar inf. izq.' },
+    { num: 36, nombre: 'Primer molar inf. izq.' },
+    { num: 35, nombre: 'Segundo premolar inf. izq.' },
+    { num: 34, nombre: 'Primer premolar inf. izq.' },
+    { num: 33, nombre: 'Canino inf. izq.' },
+    { num: 32, nombre: 'Incisivo lateral inf. izq.' },
+    { num: 31, nombre: 'Incisivo central inf. izq.' },
+    // Inferior derecha (cuadrante 4)
+    { num: 41, nombre: 'Incisivo central inf. der.' },
+    { num: 42, nombre: 'Incisivo lateral inf. der.' },
+    { num: 43, nombre: 'Canino inf. der.' },
+    { num: 44, nombre: 'Primer premolar inf. der.' },
+    { num: 45, nombre: 'Segundo premolar inf. der.' },
+    { num: 46, nombre: 'Primer molar inf. der.' },
+    { num: 47, nombre: 'Segundo molar inf. der.' },
+    { num: 48, nombre: 'Tercer molar inf. der.' },
+];
+
+const odontograma = document.getElementById('odontograma');
+const seleccionados = new Set();
+const tooltip = document.createElement('div');
+tooltip.className = 'tooth-tooltip';
+document.body.appendChild(tooltip);
+
+function getToothPosition(idx, arc) {
+    // Parámetros anatómicos para arco bucal realista mejorados
+    // El arco es más ancho en molares y más estrecho y "plano" en incisivos
+    const total = 16;
+    const cx = 450;
+    const cy = arc === 'sup' ? 180 : 340;
+    // Ejes mayores y menores para elipse bucal
+    // Más ancho en molares, más "apretado" en incisivos
+    const a = 260;
+    const b = 90;
+    // Ángulos para distribuir dientes en arco bucal
+    // Superior: de 205° a -25° (más abierto)
+    // Inferior: de 155° a 385°
+    const angleStart = arc === 'sup' ? (Math.PI * 1.14) : (Math.PI * 0.86);
+    const angleEnd   = arc === 'sup' ? (Math.PI * 1.86) : (Math.PI * 2.14);
+    let t = idx / (total - 1);
+    let angle = angleStart + (angleEnd - angleStart) * t;
+    // Corrección para que los incisivos estén más "adelante" y juntos
+    if (t > 0.35 && t < 0.65) {
+        angle += (arc === 'sup' ? -1 : 1) * 0.13 * Math.sin((t-0.5)*Math.PI*2);
+    }
+    // Corrección para separar más los molares
+    if (t < 0.15) angle -= 0.07 * (0.15-t)/0.15;
+    if (t > 0.85) angle += 0.07 * (t-0.85)/0.15;
+    // Posición elíptica
+    const x = cx + a * Math.cos(angle);
+    const y = cy + b * Math.sin(angle) + (arc === 'sup' ? -18 : 18);
+    // Rotación del diente para seguir el arco
+    const rot = (angle - Math.PI/2) * 57.3;
+    return { x, y, angle, rot };
+}
+
+function drawToothRow(g, startIdx, endIdx, y, isSuperior) {
+    const total = endIdx - startIdx + 1;
+    const toothWidth = 44;
+    const gap = 8;
+    const rowWidth = toothWidth * total + gap * (total - 1);
+    const startX = 450 - rowWidth / 2 + toothWidth / 2;
+    for (let i = 0; i < total; i++) {
+        const idx = isSuperior ? startIdx + i : endIdx - i;
+        const x = startX + i * (toothWidth + gap);
+        // Dibuja el diente (sin rotación ni arco)
+        drawTooth(g, x, y, 0, dientes[idx].num, dientes[idx].nombre, isSuperior ? 'sup' : 'inf', idx, 0, true);
+    }
+}
+
+function drawTooth(g, x, y, angle, num, nombre, arc, idx, rot=0, isRow=false) {
+    // Dibuja cada diente con una forma SVG aproximada a su tipo
+    // Molares: más anchos y con "raíces" separadas
+    // Premolares: más pequeños, bicúspides
+    // Caninos: puntiagudos
+    // Incisivos: rectangulares y delgados
+    let coronaPath, raizPath;
+    // Superior
+    if (arc === 'sup') {
+        if (idx <= 2 || idx >= 13) { // Molares
+            coronaPath = `M ${x-18} ${y} Q ${x-10} ${y-18} ${x} ${y-12} Q ${x+10} ${y-18} ${x+18} ${y} Q ${x+12} ${y+8} ${x} ${y+8} Q ${x-12} ${y+8} ${x-18} ${y} Z`;
+            raizPath = `M ${x-10} ${y+8} Q ${x-12} ${y+22} ${x-6} ${y+30} Q ${x} ${y+22} ${x+6} ${y+30} Q ${x+12} ${y+22} ${x+10} ${y+8} Z`;
+        } else if (idx === 3 || idx === 12) { // 2dos premolares
+            coronaPath = `M ${x-14} ${y} Q ${x} ${y-16} ${x+14} ${y} Q ${x+10} ${y+8} ${x} ${y+8} Q ${x-10} ${y+8} ${x-14} ${y} Z`;
+            raizPath = `M ${x-6} ${y+8} Q ${x-8} ${y+22} ${x-2} ${y+28} Q ${x} ${y+22} ${x+2} ${y+28} Q ${x+8} ${y+22} ${x+6} ${y+8} Z`;
+        } else if (idx === 4 || idx === 11) { // 1ros premolares
+            coronaPath = `M ${x-12} ${y} Q ${x} ${y-18} ${x+12} ${y} Q ${x+8} ${y+8} ${x} ${y+8} Q ${x-8} ${y+8} ${x-12} ${y} Z`;
+            raizPath = `M ${x-5} ${y+8} Q ${x-6} ${y+20} ${x} ${y+26} Q ${x+6} ${y+20} ${x+5} ${y+8} Z`;
+        } else if (idx === 5 || idx === 10) { // Caninos
+            coronaPath = `M ${x-8} ${y} Q ${x} ${y-26} ${x+8} ${y} Q ${x+4} ${y+8} ${x} ${y+8} Q ${x-4} ${y+8} ${x-8} ${y} Z`;
+            raizPath = `M ${x-2} ${y+8} Q ${x} ${y+30} ${x+2} ${y+8} Z`;
+        } else { // Incisivos
+            coronaPath = `M ${x-7} ${y} Q ${x} ${y-18} ${x+7} ${y} Q ${x+5} ${y+8} ${x} ${y+8} Q ${x-5} ${y+8} ${x-7} ${y} Z`;
+            raizPath = `M ${x-2} ${y+8} Q ${x} ${y+24} ${x+2} ${y+8} Z`;
+        }
+    } else { // Inferior
+        if (idx <= 18 || idx >= 29) { // Molares
+            coronaPath = `M ${x-18} ${y} Q ${x-10} ${y+18} ${x} ${y+12} Q ${x+10} ${y+18} ${x+18} ${y} Q ${x+12} ${y-8} ${x} ${y-8} Q ${x-12} ${y-8} ${x-18} ${y} Z`;
+            raizPath = `M ${x-10} ${y-8} Q ${x-12} ${y-22} ${x-6} ${y-30} Q ${x} ${y-22} ${x+6} ${y-30} Q ${x+12} ${y-22} ${x+10} ${y-8} Z`;
+        } else if (idx === 19 || idx === 28) { // 2dos premolares
+            coronaPath = `M ${x-14} ${y} Q ${x} ${y+16} ${x+14} ${y} Q ${x+10} ${y-8} ${x} ${y-8} Q ${x-10} ${y-8} ${x-14} ${y} Z`;
+            raizPath = `M ${x-6} ${y-8} Q ${x-8} ${y-22} ${x-2} ${y+28} Q ${x} ${y+22} ${x+2} ${y+28} Q ${x+8} ${y-22} ${x+6} ${y-8} Z`;
+        } else if (idx === 20 || idx === 27) { // 1ros premolares
+            coronaPath = `M ${x-12} ${y} Q ${x} ${y+18} ${x+12} ${y} Q ${x+8} ${y-8} ${x} ${y-8} Q ${x-8} ${y-8} ${x-12} ${y} Z`;
+            raizPath = `M ${x-5} ${y-8} Q ${x-6} ${y-20} ${x} ${y-26} Q ${x+6} ${y-20} ${x+5} ${y-8} Z`;
+        } else if (idx === 21 || idx === 26) { // Caninos
+            coronaPath = `M ${x-8} ${y} Q ${x} ${y+26} ${x+8} ${y} Q ${x+4} ${y-8} ${x} ${y-8} Q ${x-4} ${y-8} ${x-8} ${y} Z`;
+            raizPath = `M ${x-2} ${y-8} Q ${x} ${y-30} ${x+2} ${y-8} Z`;
+        } else { // Incisivos
+            coronaPath = `M ${x-7} ${y} Q ${x} ${y+18} ${x+7} ${y} Q ${x+5} ${y-8} ${x} ${y-8} Q ${x-5} ${y-8} ${x-7} ${y} Z`;
+            raizPath = `M ${x-2} ${y-8} Q ${x} ${y-24} ${x+2} ${y-8} Z`;
+        }
+    }
+    const toothG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    toothG.setAttribute('tabindex', '0');
+    toothG.setAttribute('aria-label', `${num} - ${nombre}`);
+    // Raíz
+    const raiz = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    raiz.setAttribute('d', raizPath);
+    raiz.setAttribute('class', 'tooth-root');
+    toothG.appendChild(raiz);
+    // Corona
+    const corona = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    corona.setAttribute('d', coronaPath);
+    corona.setAttribute('class', 'tooth-shape');
+    corona.setAttribute('data-num', num);
+    corona.setAttribute('data-nombre', nombre);
+    toothG.appendChild(corona);
+    // Eventos de selección y tooltip
+    corona.addEventListener('click', function(e) {
+        if (seleccionados.has(num)) {
+            seleccionados.delete(num);
+            corona.classList.remove('tooth-selected');
+        } else {
+            seleccionados.add(num);
+            corona.classList.add('tooth-selected');
+        }
+        updateSeleccionados();
+    });
+    corona.addEventListener('mouseenter', function(e) {
+        corona.classList.add('tooth-hover');
+        tooltip.innerText = `${num} - ${nombre}`;
+        tooltip.style.display = 'block';
+    });
+    corona.addEventListener('mouseleave', function(e) {
+        corona.classList.remove('tooth-hover');
+        tooltip.style.display = 'none';
+    });
+    corona.addEventListener('mousemove', function(e) {
+        tooltip.style.left = (e.pageX + 18) + 'px';
+        tooltip.style.top = (e.pageY - 10) + 'px';
+    });
+    g.appendChild(toothG);
+    // Etiqueta de número debajo del diente
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', x);
+    label.setAttribute('y', y + 48);
+    label.setAttribute('class', 'tooth-label');
+    label.textContent = num;
+    g.appendChild(label);
+}
+
+function drawOdontograma() {
+    // Limpiar solo los grupos de dientes
+    const arcSup = document.getElementById('arc-superior');
+    const arcInf = document.getElementById('arc-inferior');
+    arcSup.innerHTML = '';
+    arcInf.innerHTML = '';
+    // Dientes superiores (18-28)
+    drawToothRow(arcSup, 0, 15, 120, true);
+    // Dientes inferiores (48-38)
+    drawToothRow(arcInf, 16, 31, 320, false);
+    // Línea punteada entre filas
+    const svg = document.getElementById('odontograma');
+    let sepLine = document.getElementById('linea-separadora');
+    if (!sepLine) {
+        sepLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        sepLine.setAttribute('id', 'linea-separadora');
+        svg.appendChild(sepLine);
+    }
+    sepLine.setAttribute('x1', 80);
+    sepLine.setAttribute('x2', 820);
+    sepLine.setAttribute('y1', 220);
+    sepLine.setAttribute('y2', 220);
+    sepLine.setAttribute('stroke', '#bbb');
+    sepLine.setAttribute('stroke-width', '1.5');
+    sepLine.setAttribute('stroke-dasharray', '6,6');
+}
+
+drawOdontograma();
+
+function updateSeleccionados() {
+    const seleccionadosArr = Array.from(seleccionados).sort();
+    document.getElementById('seleccionados').value = seleccionadosArr.join(',');
+    const texto = seleccionadosArr.length === 0
+        ? 'Ninguno'
+        : seleccionadosArr.length === 1
+            ? seleccionadosArr[0]
+            : seleccionadosArr.join(', ');
+    document.getElementById('seleccionados-texto').textContent = texto;
+    document.getElementById('listaSeleccionados').textContent = texto;
+}
+</script>
+<div style="margin-top:18px;text-align:center;font-size:17px;">
+    Dientes seleccionados: <span id="listaSeleccionados" style="font-weight:bold;color:#1976d2;"></span>
+</div>
+</body>
+</html>

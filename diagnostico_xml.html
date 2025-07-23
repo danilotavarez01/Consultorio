@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico JSON/XML</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .result { margin-top: 10px; padding: 10px; background-color: #f5f5f5; border-radius: 3px; white-space: pre-wrap; }
+        .success { color: green; }
+        .error { color: red; }
+        button { padding: 8px 15px; margin-right: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Diagnóstico de Error XML en Datos JSON</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Archivo Original</h2>
+        <p>Prueba el archivo get_campos_mysql_fixed.php que está causando problemas</p>
+        <button id="btnTest1">Ejecutar Test</button>
+        <div id="result1" class="result">Resultado aparecerá aquí...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Archivo Simple</h2>
+        <p>Prueba un archivo JSON simple para comparar</p>
+        <button id="btnTest2">Ejecutar Test</button>
+        <div id="result2" class="result">Resultado aparecerá aquí...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Verificar Encabezados</h2>
+        <p>Verifica los encabezados HTTP enviados por los archivos</p>
+        <button id="btnTest3">Ejecutar Test</button>
+        <div id="result3" class="result">Resultado aparecerá aquí...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Contenido Raw (Bytes)</h2>
+        <p>Muestra el contenido bruto en hexadecimal de los primeros bytes</p>
+        <button id="btnTest4">Ejecutar Test</button>
+        <div id="result4" class="result">Resultado aparecerá aquí...</div>
+    </div>
+
+    <script>
+        function showResult(elementId, data, success = true) {
+            const element = document.getElementById(elementId);
+            element.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+            element.className = success ? 'result success' : 'result error';
+        }
+
+        document.getElementById('btnTest1').addEventListener('click', function() {
+            fetch('get_campos_mysql_fixed.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    return response.text(); // Obtener como texto para evitar errores de parsing
+                })
+                .then(text => {
+                    try {
+                        // Intentar parsear como JSON
+                        const data = JSON.parse(text);
+                        showResult('result1', data);
+                    } catch (e) {
+                        // Si hay error de parsing, mostrar el texto y el error
+                        showResult('result1', `Error al parsear JSON: ${e.message}\n\nTexto recibido:\n${text}`, false);
+                    }
+                })
+                .catch(error => {
+                    showResult('result1', `Error: ${error.message}`, false);
+                });
+        });
+
+        document.getElementById('btnTest2').addEventListener('click', function() {
+            fetch('test_json_simple.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    try {
+                        const data = JSON.parse(text);
+                        showResult('result2', data);
+                    } catch (e) {
+                        showResult('result2', `Error al parsear JSON: ${e.message}\n\nTexto recibido:\n${text}`, false);
+                    }
+                })
+                .catch(error => {
+                    showResult('result2', `Error: ${error.message}`, false);
+                });
+        });
+
+        document.getElementById('btnTest3').addEventListener('click', function() {
+            const result3 = document.getElementById('result3');
+            result3.textContent = "Consultando encabezados...";
+            
+            Promise.all([
+                fetch('get_campos_mysql_fixed.php', {method: 'HEAD'}).then(r => ({
+                    url: 'get_campos_mysql_fixed.php',
+                    headers: Object.fromEntries([...r.headers.entries()]),
+                    status: r.status,
+                    statusText: r.statusText
+                })),
+                fetch('test_json_simple.php', {method: 'HEAD'}).then(r => ({
+                    url: 'test_json_simple.php',
+                    headers: Object.fromEntries([...r.headers.entries()]),
+                    status: r.status,
+                    statusText: r.statusText
+                }))
+            ])
+            .then(results => {
+                showResult('result3', results);
+            })
+            .catch(error => {
+                showResult('result3', `Error: ${error.message}`, false);
+            });
+        });
+
+        document.getElementById('btnTest4').addEventListener('click', function() {
+            const result4 = document.getElementById('result4');
+            result4.textContent = "Obteniendo datos...";
+            
+            Promise.all([
+                fetch('get_campos_mysql_fixed.php')
+                    .then(r => r.arrayBuffer())
+                    .then(buffer => ({
+                        url: 'get_campos_mysql_fixed.php',
+                        firstBytes: Array.from(new Uint8Array(buffer.slice(0, 20)))
+                            .map(b => b.toString(16).padStart(2, '0'))
+                            .join(' '),
+                        asText: new TextDecoder().decode(buffer.slice(0, 40))
+                    })),
+                fetch('test_json_simple.php')
+                    .then(r => r.arrayBuffer())
+                    .then(buffer => ({
+                        url: 'test_json_simple.php',
+                        firstBytes: Array.from(new Uint8Array(buffer.slice(0, 20)))
+                            .map(b => b.toString(16).padStart(2, '0'))
+                            .join(' '),
+                        asText: new TextDecoder().decode(buffer.slice(0, 40))
+                    }))
+            ])
+            .then(results => {
+                showResult('result4', results);
+            })
+            .catch(error => {
+                showResult('result4', `Error: ${error.message}`, false);
+            });
+        });
+    </script>
+</body>
+</html>
