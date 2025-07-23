@@ -19,6 +19,11 @@ $consulta = null;
 $error = null;
 $success = null;
 
+// Verificar si hay mensaje de éxito desde redirección
+if (isset($_GET['success']) && $_GET['success'] == '1') {
+    $success = "Consulta actualizada correctamente";
+}
+
 // Verificar si se proporcionó un ID de consulta
 if (isset($_GET['id']) && !empty($_GET['id'])) {
     $id = $_GET['id'];
@@ -75,16 +80,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         $stmt->bindParam(10, $_POST['consulta_id'], PDO::PARAM_INT);
         $stmt->execute();
           $conn->commit();
-        $success = "Consulta actualizada correctamente";
         
-        // Refrescar los datos de la consulta con la consulta correcta
-        $refresh_sql = "SELECT h.*, p.nombre, p.apellido, p.id as paciente_id
-                        FROM historial_medico h 
-                        JOIN pacientes p ON h.paciente_id = p.id 
-                        WHERE h.id = ?";
-        $stmt = $conn->prepare($refresh_sql);
-        $stmt->execute([$_POST['consulta_id']]);
-        $consulta = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Redirigir para evitar problemas de headers y reenvío de formulario
+        header("Location: editar_consulta.php?id=" . $_POST['consulta_id'] . "&success=1");
+        exit;
         
     } catch (Exception $e) {
         $conn->rollBack();
