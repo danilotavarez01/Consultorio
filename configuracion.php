@@ -329,6 +329,69 @@ try {
 if (file_exists($directorio_logo . 'logo.png')) {
     $logo_actual = $directorio_logo . 'logo.png';
 }
+
+// Cargar configuración final para el formulario (por si no se cargó antes)
+if (!$config || empty($config)) {
+    try {
+        $conn = verificarConexion($conn);
+        $stmt = $conn->query("SELECT * FROM configuracion WHERE id = 1");
+        $config = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$config) {
+            // Si aún no hay configuración, crear una por defecto
+            $config = [
+                'nombre_consultorio' => 'Consultorio Médico',
+                'medico_nombre' => 'Dr. Médico',
+                'email_contacto' => '',
+                'telefono' => '',
+                'direccion' => '',
+                'duracion_cita' => 30,
+                'hora_inicio' => '09:00',
+                'hora_fin' => '18:00',
+                'dias_laborables' => '1,2,3,4,5',
+                'intervalo_citas' => 30,
+                'multi_medico' => 0,
+                'moneda' => 'RD$',
+                'zona_horaria' => 'America/Santo_Domingo',
+                'formato_fecha' => 'Y-m-d',
+                'idioma' => 'es',
+                'tema_color' => 'light',
+                'mostrar_alertas_stock' => 1,
+                'notificaciones_email' => 0,
+                'whatsapp_server' => 'https://api.whatsapp.com',
+                'require_https' => 0,
+                'modo_mantenimiento' => 0,
+                'especialidad_id' => null
+            ];
+        }
+    } catch (Exception $e) {
+        // Si hay error, usar configuración por defecto
+        $config = [
+            'nombre_consultorio' => 'Consultorio Médico',
+            'medico_nombre' => 'Dr. Médico',
+            'email_contacto' => '',
+            'telefono' => '',
+            'direccion' => '',
+            'duracion_cita' => 30,
+            'hora_inicio' => '09:00',
+            'hora_fin' => '18:00',
+            'dias_laborables' => '1,2,3,4,5',
+            'intervalo_citas' => 30,
+            'multi_medico' => 0,
+            'moneda' => 'RD$',
+            'zona_horaria' => 'America/Santo_Domingo',
+            'formato_fecha' => 'Y-m-d',
+            'idioma' => 'es',
+            'tema_color' => 'light',
+            'mostrar_alertas_stock' => 1,
+            'notificaciones_email' => 0,
+            'whatsapp_server' => 'https://api.whatsapp.com',
+            'require_https' => 0,
+            'modo_mantenimiento' => 0,
+            'especialidad_id' => null
+        ];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -364,6 +427,18 @@ if (file_exists($directorio_logo . 'logo.png')) {
                 <hr>
 
                 <?php if(!empty($mensaje)) echo $mensaje; ?>
+
+                <!-- Debug temporal - remover después -->
+                <?php if (isset($_GET['debug'])): ?>
+                <div class="alert alert-info">
+                    <strong>Debug Info:</strong><br>
+                    Config loaded: <?php echo $config ? 'Yes' : 'No'; ?><br>
+                    <?php if ($config): ?>
+                        nombre_consultorio: <?php echo htmlspecialchars($config['nombre_consultorio'] ?? 'NULL'); ?><br>
+                        medico_nombre: <?php echo htmlspecialchars($config['medico_nombre'] ?? 'NULL'); ?><br>
+                    <?php endif; ?>
+                </div>
+                <?php endif; ?>
 
                 <div class="card">
                     <div class="card-body">

@@ -7,17 +7,26 @@ if(!isset($_SESSION)) {
 // Cargar nombre del consultorio desde la base de datos
 $nombre_consultorio = 'Consultorio Médico'; // Valor por defecto
 try {
-    if (file_exists('../config.php')) {
-        require_once '../config.php';
-    } elseif (file_exists('config.php')) {
-        require_once 'config.php';
+    // Solo cargar config.php si no está ya cargado
+    if (!isset($conn)) {
+        if (file_exists('../config.php')) {
+            require_once '../config.php';
+        } elseif (file_exists('config.php')) {
+            require_once 'config.php';
+        }
     }
     
-    if (isset($conn)) {
-        $stmt = $conn->query("SELECT nombre_consultorio FROM configuracion WHERE id = 1");
-        $config = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($config && !empty($config['nombre_consultorio'])) {
-            $nombre_consultorio = $config['nombre_consultorio'];
+    // Verificar que la conexión esté disponible
+    if (isset($conn) && $conn instanceof PDO) {
+        // Verificar que la tabla existe
+        $tableCheck = $conn->query("SHOW TABLES LIKE 'configuracion'");
+        if ($tableCheck->rowCount() > 0) {
+            $stmt = $conn->prepare("SELECT nombre_consultorio FROM configuracion WHERE id = 1");
+            $stmt->execute();
+            $config = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($config && !empty($config['nombre_consultorio'])) {
+                $nombre_consultorio = $config['nombre_consultorio'];
+            }
         }
     }
 } catch (Exception $e) {
