@@ -48,22 +48,27 @@ if($_SESSION["username"] !== "admin"){
 $mensaje = '';
 $logo_actual = '';
 $directorio_logo = 'uploads/config/';
-$config = null;
+$config = [];
 
-// Obtener configuración actual
+// CARGA INICIAL SIMPLE DE CONFIGURACIÓN
 try {
-    // Verificar si la tabla existe
-    $stmt = $conn->query("SHOW TABLES LIKE 'configuracion'");
-    if ($stmt->rowCount() == 0) {
-        throw new Exception("La tabla 'configuracion' no existe");
+    // Verificar que tenemos conexión
+    if (!isset($conn) || !($conn instanceof PDO)) {
+        throw new Exception("No hay conexión a la base de datos");
     }
     
-    // Verificar si existe el registro con id = 1
-    $stmt = $conn->query("SELECT COUNT(*) as count FROM configuracion WHERE id = 1");
-    $count = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Verificar tabla
+    $stmt = $conn->query("SHOW TABLES LIKE 'configuracion'");
+    if ($stmt->rowCount() == 0) {
+        throw new Exception("La tabla 'configuracion' no existe. <a href='reparar_configuracion.php'>Ejecutar reparación</a>");
+    }
     
-    if ($count['count'] == 0) {
-        // Insertar registro por defecto
+    // Cargar configuración básica
+    $stmt = $conn->query("SELECT * FROM configuracion WHERE id = 1");
+    $config = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$config) {
+        // Si no hay configuración, insertar una básica
         $sql_insert = "INSERT INTO configuracion (
             id, nombre_consultorio, medico_nombre, duracion_cita, 
             hora_inicio, hora_fin, dias_laborables, intervalo_citas,
@@ -76,22 +81,43 @@ try {
             1, 0, 'https://api.whatsapp.com'
         )";
         $conn->exec($sql_insert);
+        
+        // Cargar la configuración recién creada
+        $stmt = $conn->query("SELECT * FROM configuracion WHERE id = 1");
+        $config = $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
-    // Ahora obtener la configuración
-    $stmt = $conn->query("SELECT * FROM configuracion WHERE id = 1");
-    $config = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if (!$config) {
-        throw new Exception("No se pudo cargar la configuración");
+        throw new Exception("No se pudo cargar la configuración después de crearla");
     }
     
-} catch(PDOException $e) {
-    $mensaje = '<div class="alert alert-danger">Error de base de datos: ' . $e->getMessage() . '</div>';
-    $config = []; // Array vacío para evitar errores
-} catch(Exception $e) {
-    $mensaje = '<div class="alert alert-danger">Error al cargar la configuración: ' . $e->getMessage() . '</div>';
-    $config = []; // Array vacío para evitar errores
+} catch (Exception $e) {
+    $mensaje = '<div class="alert alert-danger">Error: ' . $e->getMessage() . '</div>';
+    // Configuración por defecto para evitar errores
+    $config = [
+        'nombre_consultorio' => 'Consultorio Médico',
+        'medico_nombre' => 'Dr. Médico',
+        'email_contacto' => '',
+        'telefono' => '',
+        'direccion' => '',
+        'duracion_cita' => 30,
+        'hora_inicio' => '09:00',
+        'hora_fin' => '18:00',
+        'dias_laborables' => '1,2,3,4,5',
+        'intervalo_citas' => 30,
+        'multi_medico' => 0,
+        'moneda' => 'RD$',
+        'zona_horaria' => 'America/Santo_Domingo',
+        'formato_fecha' => 'Y-m-d',
+        'idioma' => 'es',
+        'tema_color' => 'light',
+        'mostrar_alertas_stock' => 1,
+        'notificaciones_email' => 0,
+        'whatsapp_server' => 'https://api.whatsapp.com',
+        'require_https' => 0,
+        'modo_mantenimiento' => 0,
+        'especialidad_id' => null
+    ];
 }
 
 // Verificar si existe un logo
