@@ -272,10 +272,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         .sidebar a { color: #fff; padding: 10px 15px; display: block; }
         .sidebar a:hover { background-color: #454d55; text-decoration: none; }
         .content { padding: 20px; }
-        .estado-pendiente { background-color: #fff3cd; }
-        .estado-en_consulta { background-color: #cfe2ff; }
-        .estado-atendido { background-color: #d4edda; }
-        .estado-cancelado { background-color: #f8d7da; }
+        .estado-pendiente { background-color: #454d55; color: #222; }
+        .estado-en_consulta { background-color: #e3f2fd; color: #222; }
+        .estado-atendido { background-color: #e6ffe6; color: #222; }
+        .estado-cancelado { background-color: #ffeaea; color: #222; }
     </style>
 </head>
 <body>
@@ -288,6 +288,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <!-- Content -->            <div class="col-md-10 content">                <h2>Gestión de Turnos</h2>
                 <hr>
                   <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="fas fa-info-circle mr-2"></i>
                     <strong>Sistema de orden por llegada:</strong> Los turnos ahora se organizan automáticamente por orden de llegada.
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -295,30 +296,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
                 
                 <?php if(isset($_GET['mensaje'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <?php echo htmlspecialchars($_GET['mensaje']); ?>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <div><?php echo htmlspecialchars($_GET['mensaje']); ?></div>
+                    <button type="button" class="close ml-auto" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <?php endif; ?>
                 
                 <?php if(isset($_GET['error'])): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?php echo htmlspecialchars($_GET['error']); ?>
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <div><?php echo htmlspecialchars($_GET['error']); ?></div>
+                    <button type="button" class="close ml-auto" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
                 <?php endif; ?>
 
                 <!-- Botón para nuevo turno -->
-                <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#nuevoTurnoModal">
-                    <i class="fas fa-calendar-plus"></i> Nuevo Turno
+                <button type="button" class="btn btn-gradient-primary mb-4 px-4 py-2 shadow" data-toggle="modal" data-target="#nuevoTurnoModal" style="font-size:1.15rem; font-weight:500; border-radius:30px; background: linear-gradient(90deg,#007bff 0,#00c6ff 100%); color:#fff;">
+                    <i class="fas fa-calendar-plus fa-lg fa-bounce mr-2"></i> Nuevo Turno
                 </button>
 
                 <!-- Filtros -->
-                <div class="row mb-3">
+                <div class="row mb-4 align-items-end" style="background:#f8f9fa; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); padding:18px 8px;">
                     <div class="col-md-3">
                         <input type="date" id="filtroFecha" class="form-control" value="<?php echo date('Y-m-d'); ?>">
                     </div>

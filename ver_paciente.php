@@ -96,6 +96,18 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         $stmt = $conn->prepare($sql);
         $stmt->execute([$id]);
         $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Mostrar el médico del turno (no el de la consulta)
+        // JOIN historial_medico -> turnos -> usuarios
+        $sql = "SELECT hm.*, t.medico_id, t.medico_nombre as medico_turno_nombre, u.nombre as usuario_nombre, u.username as usuario_username
+                FROM historial_medico hm
+                LEFT JOIN turnos t ON hm.paciente_id = t.paciente_id AND DATE(hm.fecha) = t.fecha_turno
+                LEFT JOIN usuarios u ON t.medico_id = u.id
+                WHERE hm.paciente_id = ?
+                ORDER BY hm.fecha DESC";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$id]);
+        $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } else {
     $error = "ID de paciente no proporcionado";
@@ -325,13 +337,13 @@ $mostrarEnfermedades = hasPermission('manage_diseases');
                                             <td><?php echo htmlspecialchars($registro['motivo_consulta']); ?></td>
                                             <td><?php echo htmlspecialchars($registro['diagnostico']); ?></td>
                                             <td><?php 
-                                                // Mostrar nombre del médico de forma robusta
-                                                if (!empty($registro['medico_apellido'])) {
-                                                    // Si existe apellido, mostrar nombre completo
-                                                    echo htmlspecialchars(trim($registro['medico_nombre'] . ' ' . $registro['medico_apellido']));
-                                                } elseif (!empty($registro['medico_nombre'])) {
-                                                    // Si solo existe nombre (o username), mostrarlo
-                                                    echo htmlspecialchars($registro['medico_nombre']);
+                                                // Mostrar el médico del turno
+                                                if (!empty($registro['medico_turno_nombre'])) {
+                                                    echo htmlspecialchars($registro['medico_turno_nombre']);
+                                                } elseif (!empty($registro['usuario_nombre'])) {
+                                                    echo htmlspecialchars($registro['usuario_nombre']);
+                                                } elseif (!empty($registro['usuario_username'])) {
+                                                    echo htmlspecialchars($registro['usuario_username']);
                                                 } else {
                                                     echo 'No especificado';
                                                 }

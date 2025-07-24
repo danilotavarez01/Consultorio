@@ -51,8 +51,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         
         // Preparar el array de campos personalizados
         $campos_adicionales = [];
-        if (isset($_POST['campos_adicionales']) && is_array($_POST['campos_adicionales'])) {
-            $campos_adicionales = json_encode($_POST['campos_adicionales']);
+        if (isset($_POST['campos_adicionales'])) {
+            if (is_array($_POST['campos_adicionales'])) {
+                $campos_adicionales = json_encode($_POST['campos_adicionales']);
+            } else {
+                $campos_adicionales = (string)$_POST['campos_adicionales'];
+            }
+        } else {
+            $campos_adicionales = '';
         }
         
         // Actualizar consulta

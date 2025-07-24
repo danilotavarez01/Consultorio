@@ -3,6 +3,8 @@ if(!isset($_SESSION)) {
     session_start();
 }
 require_once "permissions.php";
+echo '<link rel="stylesheet" href="assets/libs/fontawesome.local.min.css">';
+echo '<link rel="stylesheet" href="assets/css/form-style.css">';
 ?>
 <div class="col-md-2 sidebar sidebar-dark">
     <!-- <h4 class="text-white text-center mb-4">Consultorio Médico</h4> -->
@@ -13,6 +15,7 @@ require_once "permissions.php";
               hasPermission('manage_users') || hasPermission('manage_doctors') || 
               hasPermission('manage_receptionist_permissions')): ?>
         <a href="index.php"><i class="fas fa-home"></i> Inicio</a>
+        
         <?php endif; ?>
         
         <?php if(hasPermission('manage_patients')): ?>

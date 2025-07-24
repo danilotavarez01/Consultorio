@@ -74,12 +74,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         }
         
         // Insertar el nuevo doctor
-        $sql = "INSERT INTO usuarios (username, password, nombre, rol, especialidad_id) VALUES (?, ?, ?, 'doctor', ?)";
+        $estado = isset($_POST['estado']) && $_POST['estado'] === 'inactivo' ? 'inactivo' : 'activo';
+        $sql = "INSERT INTO usuarios (username, password, nombre, rol, especialidad_id, estado) VALUES (?, ?, ?, 'doctor', ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(1, $username, PDO::PARAM_STR);
         $stmt->bindParam(2, $password_hash, PDO::PARAM_STR);
         $stmt->bindParam(3, $nombre_completo, PDO::PARAM_STR);
         $stmt->bindParam(4, $especialidad_id, PDO::PARAM_INT);
+        $stmt->bindParam(5, $estado, PDO::PARAM_STR);
         $stmt->execute();
         
         $conn->commit();
@@ -113,11 +115,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         }
         
         // Actualizar información del doctor (sin modificar la contraseña)
-        $sql = "UPDATE usuarios SET nombre = ?, especialidad_id = ? WHERE id = ?";
+        $estado = isset($_POST['edit_estado']) && $_POST['edit_estado'] === 'inactivo' ? 'inactivo' : 'activo';
+        $sql = "UPDATE usuarios SET nombre = ?, especialidad_id = ?, estado = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(1, $nombre_completo, PDO::PARAM_STR);
         $stmt->bindParam(2, $especialidad_id, PDO::PARAM_INT);
-        $stmt->bindParam(3, $_POST['doctor_id'], PDO::PARAM_INT);
+        $stmt->bindParam(3, $estado, PDO::PARAM_STR);
+        $stmt->bindParam(4, $_POST['doctor_id'], PDO::PARAM_INT);
         $stmt->execute();
         
         $conn->commit();
@@ -177,7 +181,7 @@ function extraerNombreApellido($nombreCompleto) {
 
 // Obtener lista de doctores
 $doctores = [];
-$stmt = $conn->query("SELECT u.id, u.username, u.nombre, u.rol, u.especialidad_id, e.nombre as especialidad 
+$stmt = $conn->query("SELECT u.id, u.username, u.nombre, u.rol, u.especialidad_id, u.estado, e.nombre as especialidad 
                       FROM usuarios u 
                       LEFT JOIN especialidades e ON u.especialidad_id = e.id 
                       WHERE u.rol = 'doctor' 
@@ -196,13 +200,11 @@ $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <style>
         .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
         .sidebar a { color: #fff; padding: 10px 15px; display: block; }
-        .sidebar a:hover { background-color: #454d55; color: #fff; text-decoration: none; }
-        .sidebar .active { background-color: #007bff; }
-        .content-wrapper { margin-left: 0; padding: 20px; }
-        .card-doctor { margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .doctor-specialty { background-color: #f8f9fa; border-radius: 4px; padding: 2px 6px; font-size: 0.8rem; }
-        .doctor-actions { display: flex; justify-content: flex-end; }
-        .badge-doctor { font-size: 0.8rem; padding: 5px 10px; }
+        .sidebar a:hover { background-color: #454d55; text-decoration: none; }
+        .content-wrapper { padding: 20px; background: #f8f9fa; color: #222; }
+        .table { background-color: #fff !important; color: #222; border-radius: 12px; overflow: hidden; }
+        thead th { background-color: #e9ecef !important; color: #222; }
+        .badge-doctor { font-size: 0.8rem; padding: 5px 10px; background-color: #e9ecef; color: #222; }
         .btn-circle {
             width: 40px;
             height: 40px;
@@ -212,7 +214,16 @@ $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
             font-size: 18px;
             line-height: 1.42857;
             margin-right: 10px;
+            background-color: #e9ecef;
+            color: #222;
         }
+        .modal-content { background-color: #fff; color: #222; }
+        .form-control { background-color: #f8f9fa; color: #222; border: 1px solid #ced4da; }
+        .form-control:focus { background-color: #fff; color: #222; border-color: #007bff; }
+        .btn-primary { background-color: #007bff; border-color: #007bff; }
+        .btn-secondary { background-color: #454d55; border-color: #454d55; color: #fff; }
+        .btn-danger { background-color: #c82333; border-color: #c82333; }
+        .btn-warning { background-color: #ffc107; border-color: #ffc107; color: #222; }
     </style>
 </head>
 <body>
@@ -245,25 +256,32 @@ $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php endif; ?>
             
             <!-- Vista de doctores -->
-            <div class="row">
-                <?php if(count($doctores) > 0): ?>
-                    <?php foreach($doctores as $doctor): 
-                        $datos = extraerNombreApellido($doctor['nombre']);
-                    ?>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card card-doctor">
-                            <div class="card-body">                                <h5 class="card-title">
-                                    <i class="fas fa-user-md text-primary"></i> 
-                                    <?php echo htmlspecialchars($doctor['nombre']); ?>
-                                </h5>
-                                <p class="card-text">
-                                    <span class="badge badge-info doctor-specialty">
-                                        <i class="fas fa-stethoscope"></i> 
-                                        <?php echo !empty($doctor['especialidad']) ? htmlspecialchars($doctor['especialidad']) : 'Sin especialidad'; ?>
-                                    </span>
-                                </p>
-                                <div class="doctor-actions mt-3">
-                                    <button class="btn btn-warning btn-circle edit-doctor-btn" 
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" style="background:#fff; border-radius:12px; overflow:hidden;">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Usuario</th>
+                            <th>Nombre</th>
+                            <th>Especialidad</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if(count($doctores) > 0): ?>
+                            <?php foreach($doctores as $i => $doctor): 
+                                $datos = extraerNombreApellido($doctor['nombre']);
+                                $estadoClass = ($doctor['estado'] === 'activo') ? 'table-success' : 'table-secondary';
+                            ?>
+                            <tr class="<?php echo $estadoClass; ?>">
+                                <td><?php echo $i+1; ?></td>
+                                <td><?php echo htmlspecialchars($doctor['username']); ?></td>
+                                <td><?php echo htmlspecialchars($doctor['nombre']); ?></td>
+                                <td><?php echo !empty($doctor['especialidad']) ? htmlspecialchars($doctor['especialidad']) : '<span class=\'text-muted\'>Sin especialidad</span>'; ?></td>
+                                <td><span class="badge badge-<?php echo ($doctor['estado'] === 'activo') ? 'success' : 'secondary'; ?>"> <?php echo ucfirst($doctor['estado']); ?> </span></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm edit-doctor-btn" 
                                             data-id="<?php echo $doctor['id']; ?>"
                                             data-username="<?php echo htmlspecialchars($doctor['username']); ?>"
                                             data-nombre="<?php echo htmlspecialchars($datos['nombre']); ?>"
@@ -272,24 +290,22 @@ $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             data-toggle="modal" data-target="#editarDoctorModal">
                                         <i class="fas fa-edit"></i>
                                     </button>
-                                    <button class="btn btn-danger btn-circle delete-doctor-btn" 
+                                    <button class="btn btn-danger btn-sm delete-doctor-btn" 
                                             data-id="<?php echo $doctor['id']; ?>"
                                             data-name="<?php echo htmlspecialchars($doctor['nombre']); ?>"
                                             data-toggle="modal" data-target="#eliminarDoctorModal">
                                         <i class="fas fa-trash"></i>
                                     </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="col-12">
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No hay doctores registrados en el sistema.
-                        </div>
-                    </div>
-                <?php endif; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted"><i class="fas fa-info-circle"></i> No hay doctores registrados en el sistema.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </main>
     </div>
@@ -307,23 +323,28 @@ $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <form method="post" action="">                <div class="modal-body">
                     <input type="hidden" name="action" value="crear_doctor">
-                    
                     <div class="form-group">
                         <label>Nombre</label>
                         <input type="text" name="nombre" class="form-control" required>
                     </div>
-                    
                     <div class="form-group">
                         <label>Apellido</label>
                         <input type="text" name="apellido" class="form-control" required>
                     </div>
-                      <div class="form-group">
+                    <div class="form-group">
                         <label>Especialidad</label>
                         <select name="especialidad_id" class="form-control">
                             <option value="NULL">Sin especialidad</option>
                             <?php foreach($especialidades as $especialidad): ?>
                                 <option value="<?php echo $especialidad['id']; ?>"><?php echo htmlspecialchars($especialidad['nombre']); ?></option>
                             <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select name="estado" class="form-control">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
                         </select>
                     </div>
                 </div>
@@ -350,23 +371,28 @@ $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <input type="hidden" name="action" value="actualizar_doctor">
                     <input type="hidden" name="doctor_id" id="edit_doctor_id">
                     <input type="hidden" id="edit_username" name="edit_username">
-                    
                     <div class="form-group">
                         <label>Nombre</label>
                         <input type="text" name="edit_nombre" id="edit_nombre" class="form-control" required>
                     </div>
-                    
                     <div class="form-group">
                         <label>Apellido</label>
                         <input type="text" name="edit_apellido" id="edit_apellido" class="form-control" required>
                     </div>
-                      <div class="form-group">
+                    <div class="form-group">
                         <label>Especialidad</label>
                         <select name="edit_especialidad_id" id="edit_especialidad_id" class="form-control">
                             <option value="NULL">Sin especialidad</option>
                             <?php foreach($especialidades as $especialidad): ?>
                                 <option value="<?php echo $especialidad['id']; ?>"><?php echo htmlspecialchars($especialidad['nombre']); ?></option>
                             <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select name="edit_estado" id="edit_estado" class="form-control">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
                         </select>
                     </div>
                 </div>
@@ -418,19 +444,18 @@ $(document).ready(function() {
         const nombre = $(this).data('nombre');
         const apellido = $(this).data('apellido');
         const especialidad = $(this).data('especialidad');
-        
+        const estado = $(this).closest('.card-doctor').find('.badge').text().trim().toLowerCase();
         $('#edit_doctor_id').val(id);
         $('#edit_username').val(username);
         $('#edit_nombre').val(nombre);
         $('#edit_apellido').val(apellido);
         $('#edit_especialidad_id').val(especialidad);
+        $('#edit_estado').val(estado);
     });
-    
     // Eliminar doctor
     $('.delete-doctor-btn').on('click', function() {
         const id = $(this).data('id');
         const name = $(this).data('name');
-        
         $('#delete_doctor_id').val(id);
         $('#delete_doctor_name').text(name);
     });

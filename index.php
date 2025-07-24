@@ -41,7 +41,7 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
     // Last activity was more than 2 hours ago
     session_unset();     // Unset all session variables
     session_destroy();   // Destroy the session
-    header("location: login.php?logout=inactive&reason=timeout");
+    header("location: login.php?logout=inactive");
     exit;
 }
 // Update last activity time
@@ -51,9 +51,18 @@ $_SESSION['last_activity'] = time();
 try {
     require_once "config.php";
     $db_connected = true;
+    
+    // Cargar configuración del consultorio
+    $stmt = $conn->query("SELECT nombre_consultorio FROM configuracion WHERE id = 1");
+    $config_consultorio = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if (!$config_consultorio) {
+        $config_consultorio = ['nombre_consultorio' => 'Consultorio Médico'];
+    }
 } catch (Exception $e) {
     $db_connected = false;
     $db_error = $e->getMessage();
+    $config_consultorio = ['nombre_consultorio' => 'Consultorio Médico'];
 }
 ?>
 
@@ -61,174 +70,67 @@ try {
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Control - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>Panel de Control - <?php echo htmlspecialchars($config_consultorio['nombre_consultorio'] ?? 'Consultorio Médico'); ?></title>
+    <link rel="stylesheet" href="assets/libs/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/libs/fontawesome.local.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
+    <link rel="stylesheet" href="assets/css/form-style.css">
     <style>
-        /* Estilos específicos para el index con mejor soporte de modo oscuro */
         body {
-            background-color: var(--bg-primary) !important;
-            color: var(--text-primary) !important;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: #f8f9fa;
+            color: #212529;
         }
-        
-        .sidebar { 
-            min-height: 100vh; 
-            background-color: var(--bg-sidebar) !important; 
-            padding-top: 20px; 
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            padding-top: 20px;
         }
-        .sidebar a { 
-            color: var(--text-white) !important; 
-            padding: 10px 15px; 
-            display: block; 
+        .sidebar a {
+            color: #fff;
+            padding: 10px 15px;
+            display: block;
         }
-        .sidebar a:hover { 
-            background-color: rgba(255, 255, 255, 0.1) !important; 
-            text-decoration: none; 
+        .sidebar a:hover {
+            background-color: #454d55;
+            text-decoration: none;
         }
-        .content { 
-            padding: 20px; 
-            background-color: var(--bg-primary) !important;
-            color: var(--text-primary) !important;
+        .content {
+            padding: 20px;
         }
-        
-        /* Asegurar que las cards respondan al modo oscuro */
-        .card {
-            background-color: var(--bg-card) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-        
         .card-header {
-            background-color: var(--bg-secondary) !important;
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
         }
-        
-        /* Tablas */
-        .table {
-            background-color: var(--table-bg) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .table th,
-        .table td {
-            border-color: var(--border-color) !important;
-            color: var(--text-primary) !important;
-        }
-        
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: var(--table-striped) !important;
-        }
-        
-        .table-hover tbody tr:hover {
-            background-color: var(--table-hover) !important;
-        }
-        
-        /* Tarjetas del Dashboard - Modo Oscuro Compatible */
-        .dashboard-card.bg-primary {
-            background: linear-gradient(135deg, #007bff, #0056b3) !important;
-        }
-        
-        .dashboard-card.bg-success {
-            background: linear-gradient(135deg, #28a745, #1e7e34) !important;
-        }
-        
-        .dashboard-card.bg-warning {
-            background: linear-gradient(135deg, #ffc107, #e0a800) !important;
-        }
-        
-        .dashboard-card.bg-info {
-            background: linear-gradient(135deg, #17a2b8, #138496) !important;
-        }
-        
-        /* En modo oscuro, ajustar los colores de las tarjetas */
-        [data-theme="dark"] .dashboard-card.bg-primary {
-            background: linear-gradient(135deg, #0d6efd, #084298) !important;
-        }
-        
-        [data-theme="dark"] .dashboard-card.bg-success {
-            background: linear-gradient(135deg, #198754, #146c43) !important;
-        }
-        
-        [data-theme="dark"] .dashboard-card.bg-warning {
-            background: linear-gradient(135deg, #fd7e14, #d63384) !important;
-            color: #fff !important;
-        }
-        
-        [data-theme="dark"] .dashboard-card.bg-info {
-            background: linear-gradient(135deg, #0dcaf0, #087990) !important;
-            color: #fff !important;
-        }
-        
-        /* Asegurar que el texto sea legible en las tarjetas */
         .dashboard-card {
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow-lg);
+            margin-bottom: 0.75rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
-        
         .dashboard-card .card-header {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: #fff !important;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: #fff;
+            border-radius: 8px 8px 0 0;
         }
-        
         .dashboard-card .card-body {
-            color: #fff !important;
+            color: #212529;
         }
-        
         .dashboard-card .card-title {
-            color: #fff !important;
             font-weight: bold;
         }
-        
-        .dashboard-card .card-text {
-            color: rgba(255, 255, 255, 0.9) !important;
-        }
-        
         .dashboard-card .card-text a {
-            color: #fff !important;
+            color: #fff;
             text-decoration: none;
-            transition: opacity 0.2s ease;
         }
-        
         .dashboard-card .card-text a:hover {
             opacity: 0.8;
             text-decoration: underline;
         }
-        
-        /* Efectos hover para las tarjetas */
-        .dashboard-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: #f2f2f2;
         }
-        
-        /* Estilos para tarjetas más pequeñas */
-        .card-compact .card-header {
-            padding: 0.5rem 0.75rem;
-            font-size: 0.85rem;
-            font-weight: bold;
+        .table-hover tbody tr:hover {
+            background-color: #e9ecef;
         }
-        .card-compact .card-body {
-            padding: 0.6rem;
-        }
-        .card-compact h5.card-title {
-            font-size: 1rem;
-            margin-bottom: 0.4rem;
-        }
-        .card-compact p.card-text {
-            font-size: 0.8rem;
-            margin-bottom: 0.2rem;
-        }
-        .dashboard-card {
-            margin-bottom: 0.75rem;
-        }
-        /* Reducir el espacio entre filas */
-        .mt-compact {
-            margin-top: 0.5rem !important;
-        }
-        /* Hacer las tablas más compactas */
         .table-compact td, .table-compact th {
             padding: 0.3rem;
             font-size: 0.85rem;
@@ -237,7 +139,6 @@ try {
             padding: 0.1rem 0.25rem;
             font-size: 0.7rem;
         }
-        /* Reducir espacio en encabezados */
         h2 {
             margin-bottom: 0.5rem;
         }
@@ -432,9 +333,8 @@ try {
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="/assets/libs/jquery-3.6.0.min.js"></script>
+    <script src="/assets/libs/bootstrap.bundle.min.js"></script>
     <script src="js/theme-manager.js"></script>
     
     <!-- Inicialización adicional del modo oscuro para index.php -->

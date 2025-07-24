@@ -26,10 +26,16 @@ try {
 }
 
 $logo_path = '';
-if ($config && $config['logo']) {
+$logo_error = '';
+if ($config && !empty($config['logo'])) {
+    // Forzar siempre PNG para evitar problemas de renderizado
     $logo_path = 'data:image/png;base64,' . base64_encode($config['logo']);
+    if (strlen($config['logo']) < 100) {
+        $logo_error = 'El logo configurado es demasiado pequeño o no es una imagen válida.';
+    }
 } else {
     $logo_path = '';
+    $logo_error = 'No hay logo configurado en la base de datos.';
 }
 
 $consulta = null;
@@ -60,6 +66,18 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 } else {
     $error = "ID de consulta no proporcionado";
 }
+
+// Buscar el médico del turno para la fecha de la receta
+$medico_turno_nombre = null;
+if ($consulta) {
+    $sqlTurno = "SELECT medico_nombre FROM turnos WHERE paciente_id = ? AND fecha_turno = ? LIMIT 1";
+    $stmtTurno = $conn->prepare($sqlTurno);
+    $stmtTurno->execute([$consulta['paciente_id'], date('Y-m-d', strtotime($consulta['fecha']))]);
+    $turno = $stmtTurno->fetch(PDO::FETCH_ASSOC);
+    if ($turno && !empty($turno['medico_nombre'])) {
+        $medico_turno_nombre = $turno['medico_nombre'];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -80,8 +98,8 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         }
     </style>
     <title>Receta Médica - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <style>
         body { font-family: Arial, sans-serif; }
         .prescription {
@@ -154,8 +172,18 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         <?php if ($consulta): ?>
         <div class="prescription">
             <div class="prescription-header">
-                <?php if (!empty($logo_path)): ?>
-                    <img src="<?php echo htmlspecialchars($logo_path); ?>?v=<?php echo time(); ?>" alt="Logo" class="header-logo">
+                <?php if (!empty($logo_path) && empty($logo_error)): ?>
+                    <img src="<?php echo $logo_path; ?>?v=<?php echo time(); ?>" alt="Logo" class="header-logo">
+                <?php else: ?>
+                    <div class="header-logo" style="height:80px;display:flex;align-items:center;justify-content:center;background:#f8f9fa;color:#888;">
+                        <span><?php echo htmlspecialchars($logo_error); ?></span>
+                    </div>
+                    <?php if (!empty($config['logo'])): ?>
+                    <div style="word-break:break-all; font-size:10px; color:#c00; background:#fffbe6; padding:8px; margin-top:8px;">
+                        <strong>Depuración: Base64 del logo</strong><br>
+                        <?php echo base64_encode($config['logo']); ?>
+                    </div>
+                    <?php endif; ?>
                 <?php endif; ?>
                 <h1><?php echo htmlspecialchars($config['nombre_consultorio'] ?? 'Consultorio Médico'); ?></h1>
                 <?php if (!empty($config['direccion'])): ?>
@@ -190,7 +218,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
                 </div>                <div class="doctor-signature">
                     <p>____________________________</p>
                     <p>Firma del Médico</p>
-                    <p><?php echo htmlspecialchars($config['medico_nombre'] ?? 'Médico Tratante'); ?></p>
+                    <p><?php echo htmlspecialchars($medico_turno_nombre ?? ($config['medico_nombre'] ?? 'Médico Tratante')); ?></p>
                 </div>
             </div>
 
@@ -201,8 +229,8 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         <?php endif; ?>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -129,8 +129,8 @@ if ($mostrarEnfermedades) {
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Pacientes - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/libs/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/libs/fontawesome.local.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <style>
         .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
@@ -155,9 +155,10 @@ if ($mostrarEnfermedades) {
             height: 40px;
             object-fit: cover;
             border-radius: 50%;
-        }    </style>    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        }
+    </style>
+    <script src="/consultorio2/assets/libs/jquery-3.6.0.min.js"></script>
+    <script src="assets/libs/bootstrap.bundle.min.js"></script>
     <script src="js/theme-manager.js"></script>
     <script src="js/camera.js"></script>
 </head>
@@ -179,7 +180,7 @@ if ($mostrarEnfermedades) {
                 <?php endif; ?>
 
                 <!-- Botón para nuevo paciente -->
-                <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#nuevoPacienteModal">
+                <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#nuevoPacienteModal">
                     <i class="fas fa-user-plus"></i> Nuevo Paciente
                 </button>
 
@@ -342,7 +343,7 @@ if ($mostrarEnfermedades) {
                                             Subir foto
                                         </label>
                                     </div>
-                                    <input type="file" name="foto" id="inputFoto" class="form-control-file mt-2" accept="image/*">
+                                    <input type="file" name="foto" id="inputFoto" class="form-control mt-2" accept="image/*">
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-check">
@@ -375,7 +376,7 @@ if ($mostrarEnfermedades) {
                                     <?php endforeach; ?>
                                 </select>
                                 <div class="input-group-append">
-                                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#nuevaEnfermedadModal" title="Crear nueva enfermedad">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#nuevaEnfermedadModal" title="Crear nueva enfermedad">
                                         <i class="fas fa-plus-circle"></i>
                                     </button>
                                 </div>
@@ -385,7 +386,7 @@ if ($mostrarEnfermedades) {
                         <?php endif; ?>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
                         <button type="submit" class="btn btn-primary">Guardar</button>
                     </div>
                 </form>
@@ -470,265 +471,9 @@ if ($mostrarEnfermedades) {
             });
         });
     </script>    <script>
-        $(document).ready(function() {
-            let cameraStream = null;
-            let video = document.createElement('video');
-            let canvas = document.createElement('canvas');
-
-            // Verificar si el navegador soporta getUserMedia
-            function hasGetUserMedia() {
-                return !!(navigator.mediaDevices &&
-                    navigator.mediaDevices.getUserMedia);
-            }            // Función para iniciar la cámara
-            async function startCamera() {
-                try {
-                    // Verificar soporte antes de intentar
-                    if (!hasCameraSupport()) {
-                        throw new Error('El navegador no soporta acceso a cámara');
-                    }
-
-                    // Configurar video
-                    video.setAttribute('autoplay', '');
-                    video.setAttribute('playsinline', '');
-                    video.setAttribute('muted', ''); // Necesario para autoplay en algunos navegadores
-                    
-                    // Limpiar y mostrar contenedor
-                    document.getElementById('camera').innerHTML = '';
-                    document.getElementById('camera').appendChild(video);
-                    $('#camera').show();
-
-                    // Usar las constraints modernas definidas globalmente
-                    const stream = await navigator.mediaDevices.getUserMedia(window.cameraConstraints);
-                    
-                    // Configurar el stream
-                    cameraStream = stream;
-                    video.srcObject = stream;
-                    
-                    // Reproducir video con manejo de errores
-                    await video.play();
-                    
-                    // Habilitar el botón de captura
-                    $('#btnCapturePhoto').prop('disabled', false);
-                    
-                    console.log('Cámara iniciada correctamente');
-                    
-                } catch (err) {
-                    console.error("Error al acceder a la cámara:", err);
-                    
-                    // Mensajes de error más específicos
-                    let mensaje = "No se pudo acceder a la cámara. ";
-                    switch (err.name) {
-                        case 'NotAllowedError':
-                            mensaje += "Asegúrate de conceder permiso para usar la cámara.";
-                            break;
-                        case 'NotFoundError':
-                            mensaje += "No se encontró ninguna cámara en el dispositivo.";
-                            break;
-                        case 'NotReadableError':
-                            mensaje += "La cámara está en uso por otra aplicación.";
-                            break;
-                        case 'OverconstrainedError':
-                            mensaje += "La configuración de cámara solicitada no es compatible.";
-                            break;
-                        case 'SecurityError':
-                            mensaje += "Acceso denegado por motivos de seguridad.";
-                            break;
-                        default:
-                            mensaje += err.message || "Error desconocido.";
-                    }
-                    
-                    // Mostrar error específico para HTTPS
-                    if (err.name === 'NotAllowedError' && window.location.protocol !== 'https:' && !isLocalNetwork(window.location.hostname)) {
-                        mensaje += "\n\nNota: La cámara requiere HTTPS en sitios web públicos.";
-                    }
-                    
-                    alert(mensaje);
-                    
-                    // Revertir a modo de upload
-                    $('#fotoCamera').prop('checked', false);
-                    $('#fotoUpload').prop('checked', true);
-                    $('#camera').hide();
-                }
-            }
-
-            // Función mejorada para capturar foto
-            function capturePhoto() {
-                try {
-                    if (!cameraStream || !video || video.readyState !== 4) {
-                        throw new Error('La cámara no está lista para capturar');
-                    }
-
-                    // Crear canvas para capturar la imagen
-                    canvas = document.createElement('canvas');
-                    
-                    // Usar las dimensiones reales del video
-                    const videoWidth = video.videoWidth || 640;
-                    const videoHeight = video.videoHeight || 480;
-                    
-                    canvas.width = videoWidth;
-                    canvas.height = videoHeight;
-                    
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Dibujar el frame actual del video
-                    ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-                    
-                    // Convertir a base64 con calidad optimizada
-                    const imgData = canvas.toDataURL('image/jpeg', 0.8);
-                    
-                    // Verificar que la imagen se capturó correctamente
-                    if (imgData.length < 100) {
-                        throw new Error('Error al capturar la imagen');
-                    }
-                    
-                    // Mostrar la vista previa
-                    $('#fotoPreview').attr('src', imgData).show();
-                    
-                    // Almacenar en campo oculto para enviar al servidor
-                    $('#fotoBase64').val(imgData);
-                    
-                    // Detener la cámara
-                    stopCamera();
-                    
-                    // Feedback visual
-                    console.log('Foto capturada correctamente');
-                    
-                    // Efecto flash (opcional)
-                    const flash = $('<div>').css({
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'white',
-                        zIndex: 9999,
-                        opacity: 0.8
-                    }).appendTo('body');
-                    
-                    flash.fadeOut(200, function() {
-                        flash.remove();
-                    });
-                    
-                } catch (err) {
-                    console.error('Error al capturar foto:', err);
-                    alert('Error al capturar la foto: ' + err.message);
-                }
-            }
-
-            // Función mejorada para detener la cámara
-            function stopCamera() {
-                try {
-                    if (cameraStream) {
-                        // Detener todos los tracks de video
-                        cameraStream.getTracks().forEach(track => {
-                            track.stop();
-                            console.log('Track detenido:', track.kind);
-                        });
-                        cameraStream = null;
-                    }
-                    
-                    // Limpiar el video
-                    if (video && video.srcObject) {
-                        video.srcObject = null;
-                    }
-                    
-                    // Ocultar la cámara y resetear botones
-                    $('#camera').hide();
-                    $('#btnCapturePhoto').prop('disabled', true);
-                    $('#btnStartCamera').prop('disabled', false);
-                    
-                    console.log('Cámara detenida correctamente');
-                    
-                } catch (err) {
-                    console.error('Error al detener la cámara:', err);
-                }
-            }
-
-            // Manejar cambio en la fuente de la foto
-            $('input[name="fotoSource"]').change(function() {
-                if (this.value === 'camera') {
-                    $('#inputFoto').prop('disabled', true);
-                    $('#btnStartCamera').prop('disabled', false);
-                    
-                    // Detener cámara previa si estaba activa
-                    stopCamera();
-                } else {
-                    $('#inputFoto').prop('disabled', false);
-                    $('#btnStartCamera').prop('disabled', true);
-                    stopCamera();
-                    $('#fotoPreview').hide();
-                    $('#fotoBase64').val('');
-                }
-            });
-
-            // Botón para iniciar cámara
-            $('#btnStartCamera').click(function() {
-                startCamera();
-                $(this).prop('disabled', true);
-            });
-
-            // Botón para capturar foto
-            $('#btnCapturePhoto').click(capturePhoto);
-
-            // Vista previa de la imagen subida
-            $('#inputFoto').change(function() {
-                if (this.files && this.files[0]) {
-                    let reader = new FileReader();
-                    reader.onload = function(e) {
-                        $('#fotoPreview').attr('src', e.target.result).show();
-                    }
-                    reader.readAsDataURL(this.files[0]);
-                }
-            });
-
-            // Al cerrar el modal, detener la cámara si estaba activa
-            $('#nuevoPacienteModal').on('hidden.bs.modal', function() {
-                stopCamera();
-                $('#fotoPreview').hide();
-                $('#fotoBase64').val('');
-                $('#inputFoto').val('');
-            });
-
-            // Configuración mejorada para cámara web
-            // Configuración para permitir tanto HTTP como HTTPS en entorno local/interno
-            function isLocalNetwork(hostname) {
-                return hostname === 'localhost' || 
-                       hostname === '127.0.0.1' || 
-                       hostname.startsWith('192.168.') || 
-                       hostname.startsWith('10.') ||
-                       hostname.startsWith('172.16.');
-            }
-
-            // Solo verificar HTTPS si no estamos en red local (no forzar redirección)
-            if (!isLocalNetwork(window.location.hostname) && window.location.protocol !== 'https:') {
-                console.warn('Se recomienda usar HTTPS para funcionalidad completa de cámara');
-            }
-
-            // Configuración moderna de cámara
-            window.cameraConstraints = {
-                video: {
-                    width: { ideal: 640, min: 320 },
-                    height: { ideal: 480, min: 240 },
-                    facingMode: 'user' // Cámara frontal por defecto
-                },
-                audio: false
-            };
-
-            // Función mejorada para detectar soporte de cámara
-            function hasCameraSupport() {
-                return !!(navigator.mediaDevices && 
-                         navigator.mediaDevices.getUserMedia);
-            }
-
-            // Mostrar advertencia si no hay soporte
-            if (!hasCameraSupport()) {
-                console.warn('El navegador no soporta acceso a cámara');
-                $('#btnStartCamera').prop('disabled', true)
-                    .text('Cámara no soportada');
-            }
-        });
+        // ...existing code...
     </script>
-    <script src="js/theme-manager.js"></script>
+    <!-- Eliminada segunda inclusión de theme-manager.js -->
 </body>
 </html>
 </div>
@@ -2952,3 +2697,1001 @@ if ($mostrarEnfermedades) {
 </div>
 </div>
 </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</

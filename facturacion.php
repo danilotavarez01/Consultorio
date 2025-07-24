@@ -291,7 +291,7 @@ try {
     
     <!-- Librerías locales optimizadas -->
     <link rel="stylesheet" href="assets/libs/bootstrap.min.css">
-    <link rel="stylesheet" href="assets/libs/fontawesome.min.css">
+    <link rel="stylesheet" href="assets/libs/fontawesome.local.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     
     <!-- JavaScript local optimizado -->
