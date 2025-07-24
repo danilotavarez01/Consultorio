@@ -60,7 +60,7 @@ require_once "permissions.php";
         <a href="reportes_facturacion.php"><i class="fas fa-chart-bar"></i> Reportes</a>
         <?php endif; ?>
 
-        <a href="logout.php" onclick="return confirmarLogout();" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
+        <a href="logout.php" onclick="return confirm('¿Estás seguro de que deseas cerrar sesión?');" title="Cerrar Sesión"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a>
     </nav>
 </div>
 

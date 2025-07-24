@@ -4,41 +4,48 @@ if(!isset($_SESSION)) {
     session_start();
 }
 
-// Cargar nombre del consultorio desde la base de datos
-$nombre_consultorio = 'Consultorio Médico'; // Valor por defecto
-try {
-    // Solo cargar config.php si no está ya cargado
-    if (!isset($conn)) {
-        if (file_exists('../config.php')) {
-            require_once '../config.php';
-        } elseif (file_exists('config.php')) {
-            require_once 'config.php';
-        }
-    }
+// Incluir configuración de base de datos
+require_once __DIR__ . '/../config.php';
+
+// Función para obtener la configuración completa usando la conexión de config.php
+function obtenerConfiguracionHeader() {
+    global $pdo, $conn;
     
-    // Verificar que la conexión esté disponible
-    if (isset($conn) && $conn instanceof PDO) {
-        // Verificar que la tabla existe
-        $tableCheck = $conn->query("SHOW TABLES LIKE 'configuracion'");
-        if ($tableCheck->rowCount() > 0) {
-            $stmt = $conn->prepare("SELECT nombre_consultorio FROM configuracion WHERE id = 1");
-            $stmt->execute();
-            $config = $stmt->fetch(PDO::FETCH_ASSOC);
-            if ($config && !empty($config['nombre_consultorio'])) {
-                $nombre_consultorio = $config['nombre_consultorio'];
-            }
+    try {
+        // Usar la conexión global de config.php
+        $conexion = isset($pdo) ? $pdo : $conn;
+        
+        if (!$conexion) {
+            return array();
         }
+        
+        // Consultar toda la configuración
+        $stmt = $conexion->query("SELECT * FROM configuracion WHERE id = 1");
+        $config = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $config ? $config : array();
+        
+    } catch (Exception $e) {
+        // En caso de error, devolver array vacío
+        return array();
     }
-} catch (Exception $e) {
-    // Si hay error, usar el valor por defecto
-    $nombre_consultorio = 'Consultorio Médico';
 }
 
+// Obtener la configuración
+$configHeader = obtenerConfiguracionHeader();
 
-
-
-
-
+// Obtener el nombre del consultorio
+if (function_exists('getNombreConsultorio')) {
+    // Si existe la función de configuracion.php, usarla con el parámetro correcto
+    $nombreConsultorio = getNombreConsultorio($configHeader);
+} else {
+    // Si no existe, obtener directamente
+    $nombreConsultorio = isset($configHeader['nombre_consultorio']) && 
+                        $configHeader['nombre_consultorio'] !== null && 
+                        $configHeader['nombre_consultorio'] !== '' 
+                        ? $configHeader['nombre_consultorio'] 
+                        : 'Consultorio Médico';
+}
 ?>
 
 <!-- Header con modo oscuro -->
@@ -48,9 +55,8 @@ try {
         <div class="header-left d-flex align-items-center">
             <i class="fas fa-stethoscope fa-2x text-primary mr-3"></i>
             <div>
-                <!-- <h4 class="mb-0" style="color: var(--text-primary);">Consultorio Médico</h4> -->
+                <h4 class="mb-0" style="color: var(--text-primary);"><?= htmlspecialchars($nombreConsultorio) ?></h4>
              
-             <h4 class="mb-0" style="color: var(--text-primary);"><?php echo htmlspecialchars($nombre_consultorio); ?></h4>
                 <small style="color: var(--text-secondary);">Sistema de Gestión Integral</small>
             </div>
         </div>

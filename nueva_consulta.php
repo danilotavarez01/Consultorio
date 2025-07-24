@@ -163,15 +163,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         
         $conn->commit();
         
-        // Redirigir a la página de receta después de guardar exitosamente
-        header("location: imprimir_receta.php?id=" . $consulta_id);
+        // Verificar que la sesión sigue activa antes de redirigir
+        if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            // Si la sesión se perdió, redirigir al login con mensaje
+            header("location: login.php?error=session_lost");
+            exit;
+        }
+        
+        // Opción 1: Redirigir a ver paciente (recomendado)
+        header("location: ver_paciente.php?id=" . $_POST['paciente_id'] . "&consulta_creada=1");
         exit;
+        
+        // Opción 2: Si hay problemas con la redirección, mostrar éxito en la misma página
+        // $success = "Consulta médica creada exitosamente. ID: " . $consulta_id;
     } catch (Exception $e) {
         // Solo hacer rollback si la transacción se inició
         if ($transactionStarted && $conn->inTransaction()) {
             $conn->rollBack();
         }
-        $error = "Error: " . $e->getMessage();
+        
+        // Log del error para debug
+        error_log("Error en nueva_consulta.php: " . $e->getMessage());
+        error_log("Sesión activa: " . (isset($_SESSION["loggedin"]) ? "SI" : "NO"));
+        
+        $error = "Error al guardar la consulta: " . $e->getMessage();
     }
 }
 

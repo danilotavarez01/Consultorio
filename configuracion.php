@@ -30,7 +30,12 @@ function verificarConexion($conn) {
 
 // Función para obtener valor de configuración con default
 function getConfigValue($config, $key, $default = '') {
-    return isset($config[$key]) && $config[$key] !== null ? $config[$key] : $default;
+    return isset($config[$key]) && $config[$key] !== null && $config[$key] !== '' ? $config[$key] : $default;
+}
+
+// Función para obtener el nombre del consultorio (para usar en el header si es necesario)
+function getNombreConsultorio($config) {
+    return getConfigValue($config, 'nombre_consultorio', 'Consultorio Médico');
 }
 
 // Verificar si el usuario está logueado

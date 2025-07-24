@@ -18,7 +18,13 @@ require_once "config.php";
 
 $paciente = null;
 $error = null;
+$success = null;
 $historial = [];
+
+// Verificar si se creó una consulta exitosamente
+if (isset($_GET['consulta_creada']) && $_GET['consulta_creada'] == '1') {
+    $success = "Consulta médica creada exitosamente.";
+}
 
 // Verificar si se proporcionó un ID de paciente
 if (isset($_GET['id']) && !empty($_GET['id'])) {
@@ -48,7 +54,45 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         $paciente['edad'] = $birthDate->diff($today)->y;
         
         // Obtener historial médico si existe
-        $sql = "SELECT * FROM historial_medico WHERE paciente_id = ? ORDER BY fecha DESC";
+        // Primero verificar qué columnas existen en la tabla usuarios
+        $columnasUsuarios = [];
+        try {
+            $stmtColumns = $conn->query("DESCRIBE usuarios");
+            $columns = $stmtColumns->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($columns as $column) {
+                $columnasUsuarios[] = $column['Field'];
+            }
+        } catch (Exception $e) {
+            $columnasUsuarios = ['username']; // fallback básico
+        }
+        
+        // Construir la consulta según las columnas disponibles
+        if (in_array('nombre', $columnasUsuarios) && in_array('apellido', $columnasUsuarios)) {
+            $sql = "SELECT hm.*, u.nombre as medico_nombre, u.apellido as medico_apellido 
+                    FROM historial_medico hm 
+                    LEFT JOIN usuarios u ON hm.doctor_id = u.id 
+                    WHERE hm.paciente_id = ? 
+                    ORDER BY hm.fecha DESC";
+        } elseif (in_array('nombre', $columnasUsuarios)) {
+            $sql = "SELECT hm.*, u.nombre as medico_nombre 
+                    FROM historial_medico hm 
+                    LEFT JOIN usuarios u ON hm.doctor_id = u.id 
+                    WHERE hm.paciente_id = ? 
+                    ORDER BY hm.fecha DESC";
+        } elseif (in_array('username', $columnasUsuarios)) {
+            $sql = "SELECT hm.*, u.username as medico_nombre 
+                    FROM historial_medico hm 
+                    LEFT JOIN usuarios u ON hm.doctor_id = u.id 
+                    WHERE hm.paciente_id = ? 
+                    ORDER BY hm.fecha DESC";
+        } else {
+            // Sin JOIN si no hay columnas de nombre apropiadas
+            $sql = "SELECT hm.*, CONCAT('Doctor ID: ', hm.doctor_id) as medico_nombre 
+                    FROM historial_medico hm 
+                    WHERE hm.paciente_id = ? 
+                    ORDER BY hm.fecha DESC";
+        }
+        
         $stmt = $conn->prepare($sql);
         $stmt->execute([$id]);
         $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -115,6 +159,10 @@ $mostrarEnfermedades = hasPermission('manage_diseases');
 
                 <?php if (isset($error)): ?>
                 <div class="alert alert-danger"><?php echo $error; ?></div>
+                <?php endif; ?>
+
+                <?php if (isset($success)): ?>
+                <div class="alert alert-success"><?php echo $success; ?></div>
                 <?php endif; ?>
 
                 <?php if ($paciente): ?>
@@ -276,7 +324,18 @@ $mostrarEnfermedades = hasPermission('manage_diseases');
                                             <td><?php echo date('d/m/Y', strtotime($registro['fecha'])); ?></td>
                                             <td><?php echo htmlspecialchars($registro['motivo_consulta']); ?></td>
                                             <td><?php echo htmlspecialchars($registro['diagnostico']); ?></td>
-                                            <td><?php echo isset($registro['medico']) ? htmlspecialchars($registro['medico']) : 'No especificado'; ?></td>
+                                            <td><?php 
+                                                // Mostrar nombre del médico de forma robusta
+                                                if (!empty($registro['medico_apellido'])) {
+                                                    // Si existe apellido, mostrar nombre completo
+                                                    echo htmlspecialchars(trim($registro['medico_nombre'] . ' ' . $registro['medico_apellido']));
+                                                } elseif (!empty($registro['medico_nombre'])) {
+                                                    // Si solo existe nombre (o username), mostrarlo
+                                                    echo htmlspecialchars($registro['medico_nombre']);
+                                                } else {
+                                                    echo 'No especificado';
+                                                }
+                                            ?></td>
                                             <td>
                                                 <div class="btn-group">
                                                     <a href="ver_consulta.php?id=<?php echo $registro['id']; ?>" class="btn btn-info btn-sm" title="Ver detalles"><i class="fas fa-eye"></i></a>
