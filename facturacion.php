@@ -24,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create_factura') {
         $paciente_id = intval($_POST['paciente_id']);
         $medico_id = intval($_POST['medico_id'] ?? $_SESSION['id']);
+        $medico_nombre = trim($_POST['medico_nombre'] ?? '');
+        $turno_id = intval($_POST['turno_id'] ?? 0);
         $fecha_factura = $_POST['fecha_factura'] ?? date('Y-m-d');
         $fecha_vencimiento = $_POST['fecha_vencimiento'] ?? date('Y-m-d', strtotime('+30 days'));
         $observaciones = trim($_POST['observaciones'] ?? '');
@@ -63,11 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 // Crear factura
                 $stmt = $conn->prepare("
-                    INSERT INTO facturas (numero_factura, paciente_id, medico_id, fecha_factura, fecha_vencimiento, 
+                    INSERT INTO facturas (numero_factura, paciente_id, medico_id, medico_nombre, fecha_factura, fecha_vencimiento, 
                                          subtotal, descuento, total, observaciones, estado) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente')
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pendiente')
                 ");
-                $stmt->execute([$numero_factura, $paciente_id, $medico_id, $fecha_factura, $fecha_vencimiento, 
+                $stmt->execute([$numero_factura, $paciente_id, $medico_id, $medico_nombre, $fecha_factura, $fecha_vencimiento, 
                                $subtotal, $descuento_total, $total, $observaciones]);
                 
                 $factura_id = $conn->lastInsertId();
@@ -83,11 +85,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $precio = floatval($item['precio']);
                     $descuento = floatval($item['descuento'] ?? 0);
                     $item_subtotal = ($cantidad * $precio) - $descuento;
-                    
+
+                    $descripcion = isset($item['descripcion']) ? $item['descripcion'] : '';
                     $stmt_detalle->execute([
                         $factura_id,
                         !empty($item['procedimiento_id']) ? intval($item['procedimiento_id']) : null,
-                        $item['descripcion'],
+                        $descripcion,
                         $cantidad,
                         $precio,
                         $descuento,
@@ -96,6 +99,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $conn->commit();
+
+                // Cambiar estado del turno a 'atendido' si se envió turno_id
+                if ($turno_id > 0) {
+                    $stmt = $conn->prepare("UPDATE turnos SET estado = 'atendido' WHERE id = ?");
+                    $stmt->execute([$turno_id]);
+                }
                 
                 // Redirigir para evitar reenvío de formulario
                 $_SESSION['success_message'] = "Factura $numero_factura creada exitosamente.";
@@ -194,7 +203,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             
             // Activar modal de impresión
+          
             $_SESSION['show_print_modal'] = true;
+
+           
             
             // Redirigir para evitar reenvío de formulario - CON PARÁMETRO DE ÉXITO
             $_SESSION['success_message'] = "Pago registrado exitosamente.";
@@ -267,7 +279,7 @@ try {
 
 // Obtener pacientes para el selector
 try {
-    $stmt = $conn->query("SELECT id, nombre, apellido FROM pacientes ORDER BY nombre, apellido");
+    $stmt = $conn->query("SELECT id, nombre, apellido, seguro_nombre, seguro_monto FROM pacientes ORDER BY nombre, apellido");
     $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $pacientes = [];
@@ -721,11 +733,30 @@ try {
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
+                                <!-- Datos del Seguro del Paciente -->
+                                <div class="card mb-3 shadow-sm border-success" style="background: linear-gradient(90deg,#e9f7ef 60%,#d4edda 100%);">
+                                    <div class="card-body py-2 px-3">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-7">
+                                                <label for="nuevo_seguro_nombre" class="font-weight-bold text-success mb-1">
+                                                    <i class="fas fa-shield-alt mr-1"></i>Seguro del Paciente
+                                                </label>
+                                                <input type="text" class="form-control border-success bg-white" id="nuevo_seguro_nombre" name="nuevo_seguro_nombre" readonly placeholder="Nombre del seguro">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label for="nuevo_seguro_monto" class="font-weight-bold text-success mb-1">
+                                                    <i class="fas fa-dollar-sign mr-1"></i>Monto Seguro
+                                                </label>
+                                                <input type="number" class="form-control border-success bg-white" id="nuevo_seguro_monto" name="nuevo_seguro_monto" readonly placeholder="$0.00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                     <label for="paciente_id">Paciente *</label>
                                     <select class="form-control" id="paciente_id" name="paciente_id" required>
                                         <option value="">Seleccionar paciente...</option>
                                         <?php foreach ($pacientes as $paciente): ?>
-                                            <option value="<?= $paciente['id'] ?>">
+                                            <option value="<?= $paciente['id'] ?>" data-seguro="<?= isset($paciente['seguro_nombre']) ? htmlspecialchars($paciente['seguro_nombre']) : '' ?>" data-seguro-monto="<?= isset($paciente['seguro_monto']) ? htmlspecialchars($paciente['seguro_monto']) : '' ?>">
                                                 <?= htmlspecialchars($paciente['nombre'] . ' ' . $paciente['apellido']) ?>
                                             </option>
                                         <?php endforeach; ?>
@@ -858,13 +889,23 @@ try {
                             <strong>Factura:</strong> <span id="pago_numero_factura"></span><br>
                             <strong>Monto pendiente:</strong> $<span id="pago_monto_pendiente"></span>
                         </div>
-                        
+
+                        <div class="form-group">
+                            <label for="seguro_nombre">Nombre del Seguro del Paciente</label>
+                            <input type="text" class="form-control" id="seguro_nombre" name="seguro_nombre" placeholder="Nombre del seguro">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="seguro_monto">Monto Seguro</label>
+                            <input type="number" class="form-control" id="seguro_monto" name="seguro_monto" step="0.01" min="0" placeholder="$0.00">
+                        </div>
+
                         <div class="form-group">
                             <label for="monto">Monto del Pago *</label>
                             <input type="number" class="form-control" id="monto" name="monto" 
                                    step="0.01" min="0.01" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="metodo_pago">Método de Pago *</label>
                             <select class="form-control" id="metodo_pago" name="metodo_pago" required>
@@ -875,13 +916,13 @@ try {
                                 <option value="cheque">Cheque</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="numero_referencia">Número de Referencia</label>
                             <input type="text" class="form-control" id="numero_referencia" name="numero_referencia" 
                                    placeholder="Número de transacción, cheque, etc.">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="observaciones_pago">Observaciones</label>
                             <textarea class="form-control" id="observaciones_pago" name="observaciones_pago" rows="3"></textarea>
@@ -943,6 +984,29 @@ try {
     <script src="js/theme-manager.js"></script>
     <script>
         let itemIndex = 1;
+
+        // Solución para mostrar el modal de Nueva Factura si data-toggle/data-target no funciona
+        document.addEventListener('DOMContentLoaded', function() {
+            const btnNuevaFactura = document.querySelector('button[data-target="#modalCrearFactura"]');
+            if (btnNuevaFactura) {
+                btnNuevaFactura.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    $('#modalCrearFactura').modal('show');
+                });
+            }
+
+            // Evento para traer datos del seguro al seleccionar paciente
+            const pacienteSelect = document.getElementById('paciente_id');
+            if (pacienteSelect) {
+                pacienteSelect.addEventListener('change', function() {
+                    const selected = pacienteSelect.options[pacienteSelect.selectedIndex];
+                    const seguroNombre = selected.getAttribute('data-seguro') || '';
+                    const seguroMonto = selected.getAttribute('data-seguro-monto') || '';
+                    document.getElementById('nuevo_seguro_nombre').value = seguroNombre;
+                    document.getElementById('nuevo_seguro_monto').value = seguroMonto;
+                });
+            }
+        });
 
         function agregarItem() {
             const container = document.getElementById('items-container');
@@ -1066,6 +1130,35 @@ try {
             document.getElementById('pago_numero_factura').textContent = numeroFactura;
             document.getElementById('pago_monto_pendiente').textContent = montoPendiente.toFixed(2);
             document.getElementById('monto').value = montoPendiente.toFixed(2);
+
+            // Buscar el nombre del seguro del paciente en la lista de facturas
+            let seguroNombre = '';
+            try {
+                // Buscar la fila de la factura en la tabla
+                const filas = document.querySelectorAll('table.table-striped tbody tr');
+                for (let fila of filas) {
+                    // Buscar el botón de agregar pago en la fila
+                    const btn = fila.querySelector('button.btn-outline-success');
+                    if (btn && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(facturaId)) {
+                        // Buscar el nombre del seguro en un atributo data-seguro o en una celda oculta
+                        // Si tienes el nombre del seguro en la estructura de la factura, puedes agregarlo como data-seguro
+                        if (btn.hasAttribute('data-seguro')) {
+                            seguroNombre = btn.getAttribute('data-seguro');
+                        } else {
+                            // Alternativamente, buscar en la fila una celda con clase 'seguro-nombre'
+                            const celdaSeguro = fila.querySelector('.seguro-nombre');
+                            if (celdaSeguro) {
+                                seguroNombre = celdaSeguro.textContent.trim();
+                            }
+                        }
+                        break;
+                    }
+                }
+            } catch (e) {
+                console.warn('No se pudo obtener el nombre del seguro:', e);
+            }
+            document.getElementById('seguro_nombre').value = seguroNombre;
+
             $('#modalAgregarPago').modal('show');
         }
 

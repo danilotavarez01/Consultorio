@@ -157,7 +157,7 @@ if ($mostrarEnfermedades) {
             border-radius: 50%;
         }
     </style>
-    <script src="/consultorio2/assets/libs/jquery-3.6.0.min.js"></script>
+    <script src="/consultorio2/assets/libs/jquery-3..1.min.js"></script>
     <script src="assets/libs/bootstrap.bundle.min.js"></script>
     <script src="js/theme-manager.js"></script>
     <script src="js/camera.js"></script>
@@ -386,7 +386,7 @@ if ($mostrarEnfermedades) {
                         <?php endif; ?>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
                         <button type="submit" class="btn btn-primary">Guardar</button>
                     </div>
                 </form>
@@ -426,121 +426,29 @@ if ($mostrarEnfermedades) {
         // Función de búsqueda
         $(document).ready(function() {
             $("#searchPaciente").on("keyup", function() {
-                var value = $(this).val().toLowerCase();
-                $("table tbody tr").filter(function() {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
-                });
-            });
-
-            // Manejar el formulario de nueva enfermedad
-            $("#formNuevaEnfermedad").on("submit", function(e) {
-                e.preventDefault();
-                
-                $.ajax({
-                    url: "ajax_crear_enfermedad.php",
-                    type: "POST",
-                    data: {
-                        nombre: $("#nombreEnfermedad").val(),
-                        descripcion: $("#descripcionEnfermedad").val()
-                    },
-                    dataType: "json",
-                    success: function(response) {
-                        if(response.success) {
-                            // Agregar la nueva enfermedad al select
-                            $("select[name='enfermedades[]']").append(
-                                $("<option></option>")
-                                    .attr("value", response.id)
-                                    .text(response.nombre)
-                                    .prop("selected", true)
-                            );
-                            
-                            // Cerrar el modal y limpiar el formulario
-                            $("#nuevaEnfermedadModal").modal("hide");
-                            $("#formNuevaEnfermedad")[0].reset();
-                            
-                            // Mostrar mensaje de éxito
-                            alert("Enfermedad creada correctamente");
-                        } else {
-                            alert("Error: " + response.message);
-                        }
-                    },
-                    error: function() {
-                        alert("Error al procesar la solicitud");
-                    }
-                });
-            });
-        });
-    </script>    <script>
-        // ...existing code...
-    </script>
-    <!-- Eliminada segunda inclusión de theme-manager.js -->
-</body>
-</html>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
+        .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
+        .sidebar a { color: #fff; padding: 10px 15px; display: block; }
+        .sidebar a:hover { background-color: #454d55; text-decoration: none; }
+        .content { padding: 20px; }
+        /* Estilos para la cámara y foto */
+        #camera {
+            width: 320px;
+            height: 240px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        #fotoPreview {
+            max-width: 150px;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+        .foto-paciente-lista {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
 </div>
 </div>
 </div>

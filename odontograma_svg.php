@@ -8,7 +8,7 @@
 
 <div id="odontograma-dinamico" class="mb-4">
     <!-- <h5 class="mt-4 mb-2 text-primary">Odontograma</h5> -->
-    <div id="odontograma-container" style="max-width: 900px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+    <div id="odontograma-container" style="max-width: 1000px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #8bd0ebff;">
         <h2 style="color: #0056b3; text-align: center; margin-bottom: 20px;">Odontograma - Selección de Dientes</h2>
         
         <!-- Checkbox para opciones del odontograma -->
@@ -58,6 +58,7 @@
             
             <!-- Etiqueta Maxilar Inferior -->
             <text x="450" y="520" text-anchor="middle" font-size="28" fill="#388e3c" font-weight="bold">Maxilar Inferior</text>
+
             <ellipse cx="450" cy="370" rx="350" ry="90" fill="#e8f5e9" opacity="0.5" />
             <!-- Líneas divisorias de cuadrantes inferiores -->
             <line x1="450" y1="280" x2="450" y2="460" stroke="#bbb" stroke-width="2" stroke-dasharray="8,6" />

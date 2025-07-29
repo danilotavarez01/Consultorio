@@ -87,7 +87,6 @@ if (isset($_GET['agregar_desde_cita']) && isset($_GET['paciente_id']) && isset($
             // Verificar si ya existe un turno para esta cita
             $stmt = $conn->prepare("SELECT * FROM turnos WHERE paciente_id = ? AND fecha_turno = ? AND hora_turno = ?");
             $stmt->execute([$cita['paciente_id'], $cita['fecha'], $cita['hora']]);
-            
             if ($stmt->rowCount() == 0) {
                 // No existe un turno para esta cita, entonces lo creamos
                 
@@ -410,6 +409,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             if ($checkColumn->rowCount() > 0) {
                                 // Si la columna existe, ordenar por ella
                                 $sql = "SELECT t.*, p.nombre, p.apellido, p.dni 
+                                        , p.seguro_medico 
                                         FROM turnos t 
                                         JOIN pacientes p ON t.paciente_id = p.id 
                                         WHERE $where_clause 
@@ -427,11 +427,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 $stmt->execute($params);
                                 while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {                                    $clase_estado = "estado-" . $row['estado'];
                                     echo "<tr class='".$clase_estado."'>";
-                                      // Verificar si la columna orden_llegada existe en el conjunto de resultados
                                     if (array_key_exists('orden_llegada', $row)) {
                                         echo "<td>".($row['orden_llegada'] ? $row['orden_llegada'] : '-')."</td>";
                                     } else {
-                                        echo "<td>-</td>";                                    }
+                                        echo "<td>-</td>";
+                                    }
                                     echo "<td>".date('H:i:s', strtotime($row['hora_turno']))."</td>";
                                     echo "<td>".$row['nombre']." ".$row['apellido']."</td>";
                                     echo "<td>".$row['dni']."</td>";
@@ -441,8 +441,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     }
                                     echo "<td>".$row['estado']."</td>";
                                     echo "<td>".$row['notas']."</td>";
-                                    echo "<td>
-                                        <div class='btn-group mr-2 mb-1'>
+                                    echo "<td>";
+                                    echo "<input type='hidden' name='turno_id' value='".$row['id']."'>"; // Campo oculto para turno_id
+                                    echo "<input type='hidden' class='medico-nombre-hidden' value='".htmlspecialchars($row['medico_nombre'] ?? '')."'>"; // Campo oculto para medico_nombre
+                                    echo "<div class='btn-group mr-2 mb-1'>
                                             <button type='button' class='btn btn-sm btn-info dropdown-toggle' data-toggle='dropdown'>
                                                 Estado
                                             </button>
@@ -455,12 +457,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                     <button type='submit' name='estado' value='atendido' class='dropdown-item'>Atendido</button>
                                                     <button type='submit' name='estado' value='cancelado' class='dropdown-item'>Cancelado</button>
                                                 </form>
-                                            </div>                                        </div>
-                                        <a href='ver_paciente.php?id=".$row['paciente_id']."' class='btn btn-success btn-sm'><i class='fas fa-user'></i></a>
-                                        ";
-                                          // El botón de llegada ha sido eliminado
-                                        
-                                        echo "</td>";
+                                            </div>
+                                        </div>";
+                                    echo "<a href='ver_paciente.php?id=".$row['paciente_id']."' class='btn btn-success btn-sm'><i class='fas fa-user'></i></a>";
+                                    $seguro_valor = (array_key_exists('seguro_medico', $row) && $row['seguro_medico'] !== null) ? $row['seguro_medico'] : '';
+                                    echo "<button type='button' class='btn btn-warning btn-sm ml-1' data-toggle='modal' data-target='#modalFacturar' 
+                                        data-paciente-nombre='".htmlspecialchars($row['nombre'].' '.$row['apellido'])."' 
+                                        data-seguro='".htmlspecialchars($seguro_valor)."' 
+                                        data-seguro-monto='' 
+                                        data-pacienteid='".$row['paciente_id']."'>
+                                        <i class='fas fa-file-invoice-dollar'></i> Facturar
+                                    </button>";
+                                    echo "</td>";
                                     echo "</tr>";
                                 }
                             } catch(PDOException $e) {
@@ -474,6 +482,119 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
+    <!-- Modal Facturar Paciente -->
+    <div class="modal fade" id="modalFacturar" tabindex="-1">
+        <div class="modal-dialog modal-xl" style="max-width:1500px;">
+            <div class="modal-content shadow-lg rounded-3" style="border:2px solid #ffc107; background:linear-gradient(135deg,#fffbe6 0,#fff 100%);">
+                <div class="modal-header bg-warning text-dark rounded-top" style="border-bottom:2px solid #ffc107;">
+                    <h5 class="modal-title font-weight-bold" style="font-size:1.35rem;"><i class="fas fa-file-invoice-dollar mr-2"></i> Generar Factura</h5>
+                    <button type="button" class="close" data-dismiss="modal" style="font-size:1.5rem;"><span>&times;</span></button>
+                </div>
+                <form id="formFacturar" method="POST" action="facturacion.php">
+                    <input type="hidden" name="action" value="create_factura">
+                    <input type="hidden" name="paciente_id" id="facturar_paciente_id">
+                    <input type="hidden" name="turno_id" id="facturar_turno_id">
+                    <input type="hidden" name="medico_nombre" id="facturar_medico_nombre">
+                    <div class="modal-body py-4 px-4" style="background:linear-gradient(90deg,#fffbe6 0,#fff 100%);">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3 border-success shadow-sm" style="background:#f8fff4;">
+                                    <div class="card-body py-3 px-4" style="color:#222;">
+                                        <div class="row align-items-center mb-2">
+                                            <div class="col-md-7">
+                                                <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-user mr-1"></i>Paciente</label>
+                                                <input type="text" class="form-control border-success bg-white" id="facturar_paciente_nombre" name="facturar_paciente_nombre" readonly style="color:#222; font-size:1.1rem; font-weight:500;">
+                                            </div>
+                                            <div class="col-md-5">
+                                                <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-shield-alt mr-1"></i>Seguro</label>
+                                                <input type="text" class="form-control border-success bg-white" id="facturar_seguro_nombre" name="facturar_seguro_nombre" readonly style="color:#222; font-size:1.1rem; font-weight:500;">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-12">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group mb-3">
+                                                            <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-dollar-sign mr-1"></i> Monto Seguro</label>
+                                                            <input type="text" class="form-control border-success bg-white" id="facturar_seguro_monto" name="facturar_seguro_monto" style="color:#222; font-size:1.1rem; font-weight:500; height:40px;" inputmode="decimal" placeholder="Monto" required autocomplete="off">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group mb-3">
+                                                            <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-credit-card mr-1"></i> Método de Pago</label>
+                                                            <select class="form-control border-success bg-white" id="facturar_metodo_pago" name="facturar_metodo_pago" style="color:#222; font-size:1.1rem; font-weight:500; height:40px;">
+                                                                <option value="Efectivo">Efectivo</option>
+                                                                <option value="Tarjeta">Tarjeta</option>
+                                                                <option value="Transferencia">Transferencia</option>
+                                                                <option value="Cheque">Cheque</option>
+                                                                <option value="Otro">Otro</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="form-group mb-3">
+                                                            <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-percent mr-1"></i> Descuento (%)</label>
+                                                            <input type="number" class="form-control border-success bg-white" id="facturar_descuento" name="facturar_descuento" min="0" max="100" value="0" style="color:#222; font-size:1.1rem; font-weight:500; height:40px;">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="form-group mb-3">
+                                                            <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-receipt mr-1"></i> Impuesto (%)</label>
+                                                            <input type="number" class="form-control border-success bg-white" id="facturar_impuesto" name="facturar_impuesto" min="0" max="100" value="0" style="color:#222; font-size:1.1rem; font-weight:500; height:40px;">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group mb-0">
+                                                            <label class="font-weight-bold mb-2" style="color:#1a3c1a;"><i class="fas fa-comment-dots mr-1"></i> Observaciones</label>
+                                                            <textarea class="form-control border-success bg-white" id="facturar_observaciones" name="facturar_observaciones" rows="3" style="color:#222; font-size:1.1rem; font-weight:500; min-height:80px; resize:vertical;"></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-3">
+                                                    <div class="col-md-12">
+                                                        <div class="card border-warning">
+                                                            <div class="card-body py-2 px-3">
+                                                                <div class="d-flex justify-content-between align-items-center">
+                                                                    <span class="font-weight-bold" style="font-size:1.15rem; color:#b8860b;">Total Factura:</span>
+                                                                    <span id="facturar_total" class="font-weight-bold" style="font-size:1.25rem; color:#d35400;">$0.00</span>
+                                                                </div>
+                                                                <!-- <button type="button" class="btn btn-outline-warning btn-sm mt-2" id="calcularTotalFactura" style="border-radius:20px; font-weight:500;"><i class="fas fa-calculator mr-1"></i>Calcular Total</button> -->
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3 border-info shadow-sm" style="background:#f8fbff;">
+                                    <div class="card-body py-3 px-4">
+                                        <h5 class="font-weight-bold mb-3" style="color:#0a3c6a;"><i class="fas fa-stethoscope mr-2"></i>Procedimientos</h5>
+                                        <div id="factura-items-container" class="mb-2">
+                                            <!-- Procedimiento Item Rows -->
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm mt-2 shadow-sm" id="agregarItemFactura" style="border-radius:20px; font-weight:500;">
+                                            <i class="fas fa-plus mr-1"></i>Agregar Procedimiento
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light rounded-bottom" style="border-top:2px solid #ffc107;">
+                        <button type="button" class="btn btn-secondary px-4 py-2" data-dismiss="modal" style="border-radius:20px; font-weight:500;">Cancelar</button>
+                        <button type="submit" class="btn btn-warning px-4 py-2" style="border-radius:20px; font-weight:500;"><i class="fas fa-save mr-2"></i>Generar Factura</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <!-- Modal Nuevo Turno -->
     <div class="modal fade" id="nuevoTurnoModal" tabindex="-1">
         <div class="modal-dialog">
@@ -561,6 +682,146 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="js/theme-manager.js"></script>    <script>
         $(document).ready(function() {
+            // --- Factura Items dinámicos ---
+            let facturaItemIndex = 0;
+            function agregarItemFactura() {
+                const container = $('#factura-items-container');
+                const itemHtml = `
+                    <div class="factura-item-row mb-2" data-index="${facturaItemIndex}">
+                        <div class="card border-info">
+                            <div class="card-body py-2 px-3" style="color:#222;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <select class="form-control procedimiento-select" name="items[${facturaItemIndex}][procedimiento_id]" required>
+                                            <option value="">Seleccionar procedimiento...</option>
+                                            <?php
+                                            $stmt_proc = $conn->query("SELECT id, nombre, precio_venta FROM procedimientos WHERE activo = 1 ORDER BY nombre");
+                                            while($proc = $stmt_proc->fetch(PDO::FETCH_ASSOC)) {
+                                                echo "<option value='".$proc['id']."' data-precio='".$proc['precio_venta']."'>".htmlspecialchars($proc['nombre'])." ($".number_format($proc['precio_venta'],2).")</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <input type="number" class="form-control item-cantidad" name="items[${facturaItemIndex}][cantidad]" min="1" value="1" required style="color:#222;">
+                                    </div>
+                                    <div class="col-md-3">
+                                        <input type="text" class="form-control item-precio" name="items[${facturaItemIndex}][precio]" required style="color:#222;">
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button type="button" class="btn btn-danger btn-sm eliminar-item-factura" title="Eliminar"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            // Actualizar el campo de precio al seleccionar procedimiento y refrescar el total
+            $(document).on('change', '.procedimiento-select', function() {
+                var precio = $(this).find('option:selected').data('precio');
+                var row = $(this).closest('.factura-item-row');
+                if (precio !== undefined) {
+                    row.find('.item-precio').val(precio);
+                } else {
+                    row.find('.item-precio').val('');
+                }
+                calcularTotalFactura();
+            });
+                container.append(itemHtml);
+                facturaItemIndex++;
+            }
+
+            // Calcular total de la factura
+            function calcularTotalFactura() {
+                let subtotal = 0;
+                $('.factura-item-row').each(function() {
+                    const cantidad = parseFloat($(this).find('.item-cantidad').val()) || 0;
+                    const precio = parseFloat($(this).find('.item-precio').val()) || 0;
+                    subtotal += cantidad * precio;
+                });
+                let descuento = parseFloat($('#facturar_descuento').val()) || 0;
+                let impuesto = parseFloat($('#facturar_impuesto').val()) || 0;
+                let total = subtotal;
+                if (descuento > 0) {
+                    total = total - (total * (descuento / 100));
+                }
+                if (impuesto > 0) {
+                    total = total + (total * (impuesto / 100));
+                }
+                if (total < 0) total = 0;
+                $('#facturar_total').text('$' + total.toFixed(2));
+            }
+
+            // Evento para calcular total
+            $('#calcularTotalFactura').click(function(){
+                calcularTotalFactura();
+            });
+
+            // Recalcular total al cambiar valores
+            $(document).on('input', '.item-precio, .item-cantidad, #facturar_descuento, #facturar_impuesto, #facturar_seguro_monto', function(){
+                calcularTotalFactura();
+            });
+            // Validar que seguroMonto solo acepte números y punto, no letras
+            $('#facturar_seguro_monto').on('input', function() {
+                let value = $(this).val();
+                // Permitir solo dígitos y máximo un punto decimal
+                value = value.replace(/[^\d.]/g, '');
+                // Si hay más de un punto, dejar solo el primero
+                let parts = value.split('.');
+                if (parts.length > 2) {
+                    value = parts[0] + '.' + parts.slice(1).join('');
+                }
+                $(this).val(value);
+            });
+
+            // Inicializar con un item SOLO cuando se abre el modal
+            $('#modalFacturar').on('show.bs.modal', function (event) {
+                var button = $(event.relatedTarget);
+                var pacienteNombre = button.data('paciente-nombre') || '';
+                var seguroMonto = button.data('seguro-monto') || '';
+                var pacienteId = button.data('pacienteid') || '';
+                var turnoId = button.closest('tr').find('input[name="turno_id"]').val() || '';
+                var medicoNombre = button.closest('tr').find('.medico-nombre-hidden').val() || '';
+
+                // AJAX para buscar el nombre del seguro
+                $.ajax({
+                    url: 'buscar_seguro_paciente.php',
+                    type: 'POST',
+                    data: { paciente_id: pacienteId },
+                    success: function(seguroNombre) {
+                        $('#facturar_paciente_nombre').val(pacienteNombre);
+                        $('#facturar_seguro_nombre').val(seguroNombre);
+                        $('#facturar_seguro_monto').val(seguroMonto);
+                        $('#facturar_paciente_id').val(pacienteId);
+                        $('#facturar_turno_id').val(turnoId);
+                        $('#facturar_medico_nombre').val(medicoNombre);
+                    },
+                    error: function() {
+                        $('#facturar_paciente_nombre').val(pacienteNombre);
+                        $('#facturar_seguro_nombre').val('');
+                        $('#facturar_seguro_monto').val(seguroMonto);
+                        $('#facturar_paciente_id').val(pacienteId);
+                        $('#facturar_turno_id').val(turnoId);
+                        $('#facturar_medico_nombre').val(medicoNombre);
+                    }
+                });
+
+                // Limpiar items previos y agregar uno nuevo
+                facturaItemIndex = 0;
+                $('#factura-items-container').empty();
+                agregarItemFactura();
+            });
+
+            // Botón para agregar más items
+            $('#agregarItemFactura').click(function(){
+                agregarItemFactura();
+            });
+
+            // Eliminar item
+            $(document).on('click', '.eliminar-item-factura', function(){
+                $(this).closest('.factura-item-row').remove();
+                setTimeout(calcularTotalFactura, 50);
+            });
             // Actualizar la hora en tiempo real cuando se abre el modal de nuevo turno
             $('#nuevoTurnoModal').on('shown.bs.modal', function () {
                 updateHoraActual();

@@ -258,12 +258,12 @@ if ($multi_medico) {
     
     <?php if (!empty($errores)): ?>
         <div class="alert alert-danger">
-            <ul>
-                <?php foreach ($errores as $error): ?>
-                    <li><?php echo htmlspecialchars($error); ?></li>
-                <?php endforeach; ?>
-            </ul>
-        </div>
+                                <td>
+                                    <a href="Citas.php?editar=<?php echo $c['id']; ?>" class="btn btn-sm btn-primary">Editar</a>
+                                    <a href="Citas.php?eliminar=<?php echo $c['id']; ?>" class="btn btn-sm btn-danger" 
+                                       onclick="return confirm('¿Está seguro de eliminar esta cita?')">Eliminar</a>
+                                    <a href="turnos.php?agregar_desde_cita=<?php echo $c['id']; ?>&paciente_id=<?php echo $c['paciente_id']; ?>&fecha=<?php echo $c['fecha']; ?>&doctor_id=<?php echo $c['doctor_id']; ?>" class="btn btn-sm btn-success mt-1"<?php echo ($c['estado'] == 'Confirmada') ? ' disabled' : ''; ?>>Agregar a Turnos</a>
+                                </td>
     <?php endif; ?>
     
     <div class="card mb-4">
@@ -284,30 +284,6 @@ if ($multi_medico) {
                                    value="<?php echo $cita ? $cita['fecha'] : date('Y-m-d'); ?>" required>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="hora">Hora</label>
-                            <input type="time" class="form-control" id="hora" name="hora" 
-                                   value="<?php echo $cita ? $cita['hora'] : ''; ?>" required>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="paciente_id">Paciente</label>
-                            <select class="form-control" id="paciente_id" name="paciente_id" required>
-                                <option value="">Seleccione un paciente</option>
-                                <?php foreach ($pacientes as $paciente): ?>
-                                    <option value="<?php echo $paciente['id']; ?>" 
-                                            <?php echo ($cita && $cita['paciente_id'] == $paciente['id']) ? 'selected' : ''; ?>>
-                                        <?php echo htmlspecialchars($paciente['nombre']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
                     <div class="col-md-6">                        <div class="form-group">
                             <label for="doctor_id">Doctor</label>
                             <?php if ($multi_medico): ?>
@@ -324,6 +300,42 @@ if ($multi_medico) {
                             <input type="text" class="form-control" value="<?php echo htmlspecialchars($config['medico_nombre'] ?? 'Médico Tratante'); ?>" readonly>
                             <input type="hidden" name="doctor_id" id="doctor_id" value="1">
                             <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="paciente_id">Paciente</label>
+                            <select class="form-control" id="paciente_id" name="paciente_id" required>
+                                <option value="">Seleccione un paciente</option>
+                                <?php foreach ($pacientes as $paciente): ?>
+                                    <option value="<?php echo $paciente['id']; ?>" 
+                                            <?php echo ($cita && $cita['paciente_id'] == $paciente['id']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($paciente['nombre']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="hora">Hora</label>
+                            <select class="form-control" id="hora" name="hora" required>
+                                <option value="">Seleccione una hora</option>
+                                <?php
+                                // Generar horas de 08:00 a 18:00 cada 30 minutos
+                                $hora_inicio = 8;
+                                $hora_fin = 18;
+                                for ($h = $hora_inicio; $h <= $hora_fin; $h++) {
+                                    foreach ([0, 30] as $min) {
+                                        $hora_str = sprintf('%02d:%02d', $h, $min);
+                                        $selected = ($cita && $cita['hora'] == $hora_str) ? 'selected' : '';
+                                        echo "<option value='$hora_str' $selected>$hora_str</option>";
+                                    }
+                                }
+                                ?>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -544,17 +556,41 @@ if ($multi_medico) {
                     $('#fecha_final').val($('#fecha_inicial').val());
                 }
             });
-            
+
             // Validar que la fecha final no sea anterior a la fecha inicial
             $('form').on('submit', function(e) {
                 var fechaInicial = $('#fecha_inicial').val();
                 var fechaFinal = $('#fecha_final').val();
-                
+
                 if (fechaInicial && fechaFinal && fechaInicial > fechaFinal) {
                     e.preventDefault();
                     alert('La fecha final no puede ser anterior a la fecha inicial');
                 }
-            });            // Fin de la inicialización de interfaz
+            });
+
+            // Al seleccionar doctor, consultar horas ocupadas y actualizar select de hora
+            $('#doctor_id, #fecha').on('change', function() {
+                var doctorId = $('#doctor_id').val();
+                var fecha = $('#fecha').val();
+                if (doctorId && fecha) {
+                    $.ajax({
+                        url: 'ajax_horas_ocupadas.php',
+                        method: 'POST',
+                        data: { doctor_id: doctorId, fecha: fecha },
+                        dataType: 'json',
+                        success: function(res) {
+                            var $horaSelect = $('#hora');
+                            if ($horaSelect.prop('tagName').toLowerCase() === 'select') {
+                                $horaSelect.empty();
+                                $.each(res.horas, function(i, hora) {
+                                    var texto = hora.hora;
+                                    if (hora.ocupada) texto += ' (Ocupada)';
+                                    $horaSelect.append('<option value="' + hora.hora + '"' + (hora.ocupada ? ' disabled' : '') + '>' + texto + '</option>');
+                                });
+                            }
+                        }
+                    });
+                }
             });
         });
     </script>
