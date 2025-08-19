@@ -781,14 +781,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             </div>
                                         </div>";
                                     echo "<a href='ver_paciente.php?id=".$row['paciente_id']."' class='btn btn-success btn-sm'><i class='fas fa-user'></i></a>";
-                                    $seguro_valor = (array_key_exists('seguro_medico', $row) && $row['seguro_medico'] !== null) ? $row['seguro_medico'] : '';
-                                    echo "<button type='button' class='btn btn-warning btn-sm ml-1' data-toggle='modal' data-target='#modalFacturar' 
-                                        data-paciente-nombre='".htmlspecialchars($row['nombre'].' '.$row['apellido'])."' 
-                                        data-seguro='".htmlspecialchars($seguro_valor)."' 
-                                        data-seguro-monto='' 
-                                        data-pacienteid='".$row['paciente_id']."'>
-                                        <i class='fas fa-file-invoice-dollar'></i> Facturar
-                                    </button>";
+                                    
+                                    // Solo mostrar botón de facturar si el paciente está en consulta
+                                    if ($row['estado'] === 'en_consulta') {
+                                        $seguro_valor = (array_key_exists('seguro_medico', $row) && $row['seguro_medico'] !== null) ? $row['seguro_medico'] : '';
+                                        echo "<button type='button' class='btn btn-warning btn-sm ml-1' data-toggle='modal' data-target='#modalFacturar' 
+                                            data-paciente-nombre='".htmlspecialchars($row['nombre'].' '.$row['apellido'])."' 
+                                            data-seguro='".htmlspecialchars($seguro_valor)."' 
+                                            data-seguro-monto='' 
+                                            data-pacienteid='".$row['paciente_id']."'>
+                                            <i class='fas fa-file-invoice-dollar'></i> Facturar
+                                        </button>";
+                                    }
                                     echo "</td>";
                                     echo "</tr>";
                                 }
