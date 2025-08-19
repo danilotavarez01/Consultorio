@@ -483,6 +483,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             border-bottom: 0 !important;
             border-left: 0.3em solid transparent !important;
             transition: transform 0.15s ease-in-out !important;
+
+             
         }
         
         /* Asegurar que el contenedor de la tabla no corte el dropdown */
@@ -505,7 +507,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             transition: all 0.2s ease-in-out !important;
             font-weight: 500 !important;
             border-width: 1px !important;
-            min-width: 110px !important; /* Ancho fijo basado en "En Consulta" */
+            min-width: 130px !important; /* Ancho fijo para todos los estados */
+            width: 130px !important; /* Ancho fijo para asegurar tamaño consistente */
             text-align: center !important;
         }
         
@@ -532,6 +535,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             background-color: #dc3545 !important;
             border-color: #dc3545 !important;
             color: #fff !important;
+       
+          
         }
         
         .btn-secondary.btn-estado {
