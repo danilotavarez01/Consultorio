@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once "permissions.php";
@@ -234,24 +234,95 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         } elseif ($_POST['action'] == 'actualizar_estado') {
             // Solo doctores y admin pueden cambiar el estado a 'atendido'
             if ($_POST['estado'] == 'atendido' && !hasPermission('edit_medical_history')) {
-                header("location: unauthorized.php");
-                exit;
+                // Si es una petición AJAX, devolver JSON
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    echo json_encode(['error' => 'No tienes permisos para marcar como atendido']);
+                    exit;
+                } else {
+                    header("location: unauthorized.php");
+                    exit;
+                }
             }
-              $sql = "UPDATE turnos SET estado = ? WHERE id = ?";
+            
+            // Validación especial para estado "en_consulta"
+            if ($_POST['estado'] == 'en_consulta') {
+                try {
+                    // Obtener información del turno actual
+                    $stmt = $conn->prepare("SELECT medico_id, medico_nombre FROM turnos WHERE id = ?");
+                    $stmt->execute([$_POST['turno_id']]);
+                    $turno_actual = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($turno_actual) {
+                        // Verificar si ya existe otro paciente en consulta con el mismo médico
+                        if ($multi_medico && $turno_actual['medico_id']) {
+                            // Si está habilitado multi_medico, verificar por medico_id
+                            $stmt = $conn->prepare("SELECT COUNT(*) as count, t.id, p.nombre, p.apellido 
+                                                   FROM turnos t 
+                                                   JOIN pacientes p ON t.paciente_id = p.id 
+                                                   WHERE t.medico_id = ? AND t.estado = 'en_consulta' AND t.id != ?");
+                            $stmt->execute([$turno_actual['medico_id'], $_POST['turno_id']]);
+                        } else {
+                            // Si no está habilitado multi_medico, verificar por medico_nombre
+                            $stmt = $conn->prepare("SELECT COUNT(*) as count, t.id, p.nombre, p.apellido 
+                                                   FROM turnos t 
+                                                   JOIN pacientes p ON t.paciente_id = p.id 
+                                                   WHERE t.medico_nombre = ? AND t.estado = 'en_consulta' AND t.id != ?");
+                            $stmt->execute([$turno_actual['medico_nombre'], $_POST['turno_id']]);
+                        }
+                        
+                        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($result['count'] > 0) {
+                            // Ya existe otro paciente en consulta con este médico
+                            $mensaje_error = "Ya hay otro paciente en consulta con " . htmlspecialchars($turno_actual['medico_nombre']) . ". Solo se puede atender un paciente a la vez por médico.";
+                            
+                            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                                echo json_encode(['error' => $mensaje_error]);
+                                exit;
+                            } else {
+                                header("location: turnos.php?error=" . urlencode($mensaje_error));
+                                exit;
+                            }
+                        }
+                    }
+                } catch(PDOException $e) {
+                    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                        echo json_encode(['error' => 'Error al validar disponibilidad del médico: ' . $e->getMessage()]);
+                        exit;
+                    } else {
+                        header("location: turnos.php?error=" . urlencode("Error: " . $e->getMessage()));
+                        exit;
+                    }
+                }
+            }
+            
+            $sql = "UPDATE turnos SET estado = ? WHERE id = ?";
             try {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute([$_POST['estado'], $_POST['turno_id']]);
                 
-                // Obtener la fecha del turno
-                $sql = "SELECT fecha_turno FROM turnos WHERE id = ?";
-                $stmt = $conn->prepare($sql);
-                $stmt->execute([$_POST['turno_id']]);
-                $turno = $stmt->fetch(PDO::FETCH_ASSOC);
-                
-                header("location: turnos.php?fecha=" . $turno['fecha_turno']);
-                exit();
+                // Si es una petición AJAX, devolver JSON
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                    echo json_encode(['success' => true, 'message' => 'Estado actualizado correctamente']);
+                    exit;
+                } else {
+                    // Obtener la fecha del turno para redirect normal
+                    $sql = "SELECT fecha_turno FROM turnos WHERE id = ?";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute([$_POST['turno_id']]);
+                    $turno = $stmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    header("location: turnos.php?fecha=" . $turno['fecha_turno']);
+                    exit();
+                }
             } catch(PDOException $e) {
-                echo "Error: " . $e->getMessage();
+                // Si es una petición AJAX, devolver JSON con error
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_With']) == 'xmlhttprequest') {
+                    echo json_encode(['error' => 'Error en la base de datos: ' . $e->getMessage()]);
+                    exit;
+                } else {
+                    echo "Error: " . $e->getMessage();
+                }
             }
         }
     }
@@ -263,18 +334,227 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Turnos - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <style>
         .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
         .sidebar a { color: #fff; padding: 10px 15px; display: block; }
         .sidebar a:hover { background-color: #454d55; text-decoration: none; }
         .content { padding: 20px; }
-        .estado-pendiente { background-color: #454d55; color: #222; }
-        .estado-en_consulta { background-color: #e3f2fd; color: #222; }
-        .estado-atendido { background-color: #e6ffe6; color: #222; }
-        .estado-cancelado { background-color: #ffeaea; color: #222; }
+        
+        /* Estilos mejorados para el estado de los turnos */
+        .estado-pendiente { 
+            background: linear-gradient(135deg, #e7c34cff 0%, #e7c34cff 100%);
+            color: #856404; 
+            border-left: 4px solid #ffc107;
+            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.2);
+        }
+        .estado-en_consulta { 
+            background: linear-gradient(135deg, #519ae2ff 0%, #519ae2ff 100%);
+            color: #0c5460; 
+            border-left: 4px solid #17a2b8;
+            box-shadow: 0 2px 4px rgba(23, 162, 184, 0.2);
+        }
+        .estado-atendido { 
+            background: linear-gradient(135deg, #66b157ff 0%, #66b157ff 100%);
+            color: #155724; 
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+        }
+        .estado-cancelado { 
+            background: linear-gradient(135deg, #e64454ff 0%, #e64454ff 100%);
+            color: #721c24; 
+            border-left: 4px solid #dc3545;
+            box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+        }
+        
+        /* Efecto hover para las filas de turnos */
+        .table-hover tbody tr:hover {
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+        }
+        
+        .estado-pendiente:hover { 
+            background: linear-gradient(135deg, #fff2cc 0%, #ffdf7e 100%);
+            box-shadow: 0 4px 8px rgba(255, 193, 7, 0.3);
+        }
+        .estado-en_consulta:hover { 
+            background: linear-gradient(135deg, #b8daff 0%, #9aceff 100%);
+            box-shadow: 0 4px 8px rgba(23, 162, 184, 0.3);
+        }
+        .estado-atendido:hover { 
+            background: linear-gradient(135deg, #c8e6d0 0%, #b1dfbb 100%);
+            box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+        }
+        .estado-cancelado:hover { 
+            background: linear-gradient(135deg, #f6c2c7 0%, #f1aeb5 100%);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+        }
+        
+        /* Estilos para dropdown - Implementación manual */
+        .dropdown-menu {
+            display: none !important;
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+            z-index: 9999 !important;
+            min-width: 180px !important;
+            padding: 8px 0 !important;
+            margin: 2px 0 0 !important;
+            background-color: #fff !important;
+            border: 1px solid rgba(0,0,0,.15) !important;
+            border-radius: 0.375rem !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,.25) !important;
+            animation: fadeIn 0.15s ease-in !important;
+            overflow: visible !important;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .dropdown-menu.show {
+            display: block !important;
+            opacity: 1 !important;
+        }
+        
+        .dropdown-item {
+            display: block !important;
+            width: 100% !important;
+            padding: 10px 20px !important;
+            clear: both !important;
+            font-weight: 400 !important;
+            color: #212529 !important;
+            text-align: left !important;
+            white-space: nowrap !important;
+            background-color: transparent !important;
+            border: 0 !important;
+            cursor: pointer !important;
+            text-decoration: none !important;
+            transition: all 0.15s ease-in-out !important;
+            line-height: 1.5 !important;
+        }
+        
+        .dropdown-item:hover, .dropdown-item:focus {
+            color: #16181b !important;
+            background-color: #f8f9fa !important;
+            text-decoration: none !important;
+            transform: translateX(3px) !important;
+        }
+        
+        .btn-group {
+            position: relative !important;
+            display: inline-flex !important;
+            vertical-align: middle !important;
+        }
+        
+        .dropdown-toggle {
+            cursor: pointer !important;
+            user-select: none !important;
+        }
+        
+        .dropdown-toggle::after {
+            display: inline-block !important;
+            margin-left: 0.255em !important;
+            vertical-align: 0.255em !important;
+            content: "" !important;
+            border-top: 0.3em solid !important;
+            border-right: 0.3em solid transparent !important;
+            border-bottom: 0 !important;
+            border-left: 0.3em solid transparent !important;
+            transition: transform 0.15s ease-in-out !important;
+        }
+        
+        .dropdown-toggle[aria-expanded="true"]::after {
+            transform: rotate(180deg) !important;
+        }
+        
+        /* Asegurar que el caret esté presente incluso cuando se actualiza dinámicamente */
+        .dropdown-toggle .caret {
+            display: inline-block !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin-left: 0.255em !important;
+            vertical-align: 0.255em !important;
+            border-top: 0.3em solid !important;
+            border-right: 0.3em solid transparent !important;
+            border-bottom: 0 !important;
+            border-left: 0.3em solid transparent !important;
+            transition: transform 0.15s ease-in-out !important;
+        }
+        
+        /* Asegurar que el contenedor de la tabla no corte el dropdown */
+        .table-responsive {
+            overflow: visible !important;
+        }
+        
+        /* Asegurar que las celdas no corten el dropdown */
+        .table td {
+            overflow: visible !important;
+        }
+        
+        /* Asegurar que el contenedor principal no corte el dropdown */
+        .content {
+            overflow: visible !important;
+        }
+        
+        /* Estilos específicos para los botones de estado */
+        .btn-estado {
+            transition: all 0.2s ease-in-out !important;
+            font-weight: 500 !important;
+            border-width: 1px !important;
+        }
+        
+        /* Estados específicos con !important para asegurar que se apliquen */
+        .btn-warning.btn-estado {
+            background-color: #ffc107 !important;
+            border-color: #ffc107 !important;
+            color: #212529 !important;
+        }
+        
+        .btn-info.btn-estado {
+            background-color: #17a2b8 !important;
+            border-color: #17a2b8 !important;
+            color: #fff !important;
+        }
+        
+        .btn-success.btn-estado {
+            background-color: #28a745 !important;
+            border-color: #28a745 !important;
+            color: #fff !important;
+        }
+        
+        .btn-danger.btn-estado {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: #fff !important;
+        }
+        
+        .btn-secondary.btn-estado {
+            background-color: #6c757d !important;
+            border-color: #6c757d !important;
+            color: #fff !important;
+        }
+        
+        /* Estilos para mensajes de notificación */
+        .notification-message {
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 9999 !important;
+            max-width: 400px !important;
+            min-width: 300px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+            border-radius: 8px !important;
+            font-weight: 500 !important;
+        }
+        
+        .notification-message .close {
+            padding: 0.5rem 0.75rem !important;
+            margin: -0.5rem -0.75rem -0.5rem auto !important;
+        }
     </style>
 </head>
 <body>
@@ -370,12 +650,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <th>#</th>
                                 <th>Hora</th>
                                 <th>Paciente</th>
-                                <th>DNI</th>
+                                <th>CEDULA</th>
                                 <th>Tipo</th>
                                 <?php if ($multi_medico): ?>
                                 <th>Médico</th>
                                 <?php endif; ?>
-                                <th>Estado</th>
+                                <!-- <th>Estado</th> -->
                                 <th>Notas</th>
                                 <th>Acciones</th>
                             </tr>
@@ -439,23 +719,64 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     if ($multi_medico) {
                                         echo "<td>".htmlspecialchars($row['medico_nombre'] ?? 'No asignado')."</td>";
                                     }
-                                    echo "<td>".$row['estado']."</td>";
+                                    // echo "<td>".$row['estado']."</td>";
                                     echo "<td>".$row['notas']."</td>";
                                     echo "<td>";
                                     echo "<input type='hidden' name='turno_id' value='".$row['id']."'>"; // Campo oculto para turno_id
                                     echo "<input type='hidden' class='medico-nombre-hidden' value='".htmlspecialchars($row['medico_nombre'] ?? '')."'>"; // Campo oculto para medico_nombre
+                                    // Obtener el texto y icono del estado actual
+                                    $estado_actual = $row['estado'];
+                                    $estado_texto = '';
+                                    $estado_icono = '';
+                                    $estado_color = 'btn-secondary';
+                                    
+                                    switch($estado_actual) {
+                                        case 'pendiente':
+                                            $estado_texto = 'Pendiente';
+                                            $estado_icono = 'fas fa-clock';
+                                            $estado_color = 'btn-warning';
+                                            break;
+                                        case 'en_consulta':
+                                            $estado_texto = 'En Consulta';
+                                            $estado_icono = 'fas fa-stethoscope';
+                                            $estado_color = 'btn-info';
+                                            break;
+                                        case 'atendido':
+                                            $estado_texto = 'Atendido';
+                                            $estado_icono = 'fas fa-check-circle';
+                                            $estado_color = 'btn-success';
+                                            break;
+                                        case 'cancelado':
+                                            $estado_texto = 'Cancelado';
+                                            $estado_icono = 'fas fa-times-circle';
+                                            $estado_color = 'btn-danger';
+                                            break;
+                                        default:
+                                            $estado_texto = 'Estado';
+                                            $estado_icono = 'fas fa-cog';
+                                            $estado_color = 'btn-secondary';
+                                    }
+                                    
                                     echo "<div class='btn-group mr-2 mb-1'>
-                                            <button type='button' class='btn btn-sm btn-info dropdown-toggle' data-toggle='dropdown'>
-                                                Estado
+                                            <button type='button' class='btn btn-sm $estado_color btn-estado dropdown-toggle' aria-haspopup='true' aria-expanded='false' data-estado-actual='$estado_actual'>
+                                                <i class='$estado_icono mr-1'></i>$estado_texto
                                             </button>
-                                            <div class='dropdown-menu'>
+                                            <div class='dropdown-menu' style='display: none;'>
                                                 <form method='POST' class='estado-form'>
                                                     <input type='hidden' name='action' value='actualizar_estado'>
                                                     <input type='hidden' name='turno_id' value='".$row['id']."'>
-                                                    <button type='submit' name='estado' value='pendiente' class='dropdown-item'>Pendiente</button>
-                                                    <button type='submit' name='estado' value='en_consulta' class='dropdown-item'>En Consulta</button>
-                                                    <button type='submit' name='estado' value='atendido' class='dropdown-item'>Atendido</button>
-                                                    <button type='submit' name='estado' value='cancelado' class='dropdown-item'>Cancelado</button>
+                                                    <button type='submit' name='estado' value='pendiente' class='dropdown-item'>
+                                                        <i class='fas fa-clock text-warning mr-2'></i>Pendiente
+                                                    </button>
+                                                    <button type='submit' name='estado' value='en_consulta' class='dropdown-item'>
+                                                        <i class='fas fa-stethoscope text-info mr-2'></i>En Consulta
+                                                    </button>
+                                                    <button type='submit' name='estado' value='atendido' class='dropdown-item'>
+                                                        <i class='fas fa-check-circle text-success mr-2'></i>Atendido
+                                                    </button>
+                                                    <button type='submit' name='estado' value='cancelado' class='dropdown-item'>
+                                                        <i class='fas fa-times-circle text-danger mr-2'></i>Cancelado
+                                                    </button>
                                                 </form>
                                             </div>
                                         </div>";
@@ -508,6 +829,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             <div class="col-md-5">
                                                 <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-shield-alt mr-1"></i>Seguro</label>
                                                 <input type="text" class="form-control border-success bg-white" id="facturar_seguro_nombre" name="facturar_seguro_nombre" readonly style="color:#222; font-size:1.1rem; font-weight:500;">
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Campo del Doctor del Turno -->
+                                        <div class="row align-items-center mb-2">
+                                            <div class="col-md-12">
+                                                <div class="card border-info shadow-sm" style="background: linear-gradient(90deg,#e7f3ff 60%,#d1ecf1 100%);">
+                                                    <div class="card-body py-2 px-3">
+                                                        <label class="font-weight-bold mb-1" style="color:#0a3c6a;"><i class="fas fa-user-md mr-1"></i>Doctor del Turno</label>
+                                                        <input type="text" class="form-control border-info bg-white" id="facturar_doctor_nombre" name="facturar_doctor_nombre" readonly style="color:#222; font-size:1.1rem; font-weight:500;" placeholder="Doctor no asignado">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="row mt-2">
@@ -677,9 +1010,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <!-- Scripts -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper-2.5.4.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
     <script src="js/theme-manager.js"></script>    <script>
         $(document).ready(function() {
             // --- Factura Items dinámicos ---
@@ -795,6 +1128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $('#facturar_paciente_id').val(pacienteId);
                         $('#facturar_turno_id').val(turnoId);
                         $('#facturar_medico_nombre').val(medicoNombre);
+                        $('#facturar_doctor_nombre').val(medicoNombre || 'Doctor no asignado');
                     },
                     error: function() {
                         $('#facturar_paciente_nombre').val(pacienteNombre);
@@ -803,6 +1137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         $('#facturar_paciente_id').val(pacienteId);
                         $('#facturar_turno_id').val(turnoId);
                         $('#facturar_medico_nombre').val(medicoNombre);
+                        $('#facturar_doctor_nombre').val(medicoNombre || 'Doctor no asignado');
                     }
                 });
 
@@ -810,6 +1145,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 facturaItemIndex = 0;
                 $('#factura-items-container').empty();
                 agregarItemFactura();
+            });
+
+
+            // Mostrar alert con el nombre del médico al generar factura
+            $('#formFacturar').submit(function(e){
+                var medicoNombre = $('#facturar_medico_nombre').val();
+                alert('Médico: ' + medicoNombre);
+                // El formulario se envía normalmente después del alert
             });
 
             // Botón para agregar más items
@@ -893,9 +1236,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 e.preventDefault();
                 var form = $(this);
                 var fecha = $('#filtroFecha').val();
+                var estado = form.find('button[type="submit"]:focus').val() || 
+                            form.find('button[type="submit"][name="estado"]').val();
                 
-                $.post('turnos.php', form.serialize() + '&fecha_turno=' + fecha, function(response) {
-                    aplicarFiltros(); // Usar la función de filtros
+                console.log('Enviando estado:', estado); // Debug
+                
+                $.ajax({
+                    url: 'turnos.php',
+                    type: 'POST',
+                    data: form.serialize(),
+                    dataType: 'json',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        console.log('Response:', response); // Debug
+                        if (response.success) {
+                            // Mostrar mensaje de éxito temporal
+                            var $successMsg = $('<div class="alert alert-success alert-dismissible fade show notification-message"><i class="fas fa-check-circle mr-2"></i>' + response.message + '<button type="button" class="close" onclick="$(this).parent().remove()"><span>&times;</span></button></div>');
+                            $('body').append($successMsg);
+                            
+                            // Ocultar mensaje después de 3 segundos
+                            setTimeout(function() {
+                                $successMsg.fadeOut(500, function() {
+                                    $(this).remove();
+                                });
+                            }, 3000);
+                            
+                            // Opcional: recargar después de mostrar el mensaje
+                            // setTimeout(function() {
+                            //     window.location.href = 'turnos.php?fecha=' + fecha;
+                            // }, 1000);
+                        } else if (response.error) {
+                            // Mostrar mensaje de error más amigable
+                            var $errorMsg = $('<div class="alert alert-danger alert-dismissible fade show notification-message"><i class="fas fa-exclamation-triangle mr-2"></i>' + response.error + '<button type="button" class="close ml-2" onclick="$(this).parent().remove()"><span>&times;</span></button></div>');
+                            $('body').append($errorMsg);
+                            
+                            // Ocultar mensaje después de 5 segundos
+                            setTimeout(function() {
+                                $errorMsg.fadeOut(500, function() {
+                                    $(this).remove();
+                                });
+                            }, 5000);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('AJAX Error:', xhr.responseText); // Debug
+                        console.log('Status:', status, 'Error:', error); // Debug
+                        
+                        // Si no es JSON, probablemente sea HTML (error del servidor)
+                        if (xhr.responseText.includes('<!DOCTYPE html>') || xhr.responseText.includes('<html')) {
+                            console.log('Received HTML instead of JSON, probably a PHP error');
+                            // Intentar extraer el error del HTML
+                            var tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = xhr.responseText;
+                            var bodyText = tempDiv.textContent || tempDiv.innerText || '';
+                            
+                            if (bodyText.includes('Error:')) {
+                                var errorMatch = bodyText.match(/Error:\s*(.+)/);
+                                if (errorMatch) {
+                                    alert('Error del servidor: ' + errorMatch[1]);
+                                } else {
+                                    alert('Error del servidor. Ver consola para detalles.');
+                                }
+                            } else {
+                                alert('Error del servidor. Ver consola para detalles.');
+                            }
+                        } else {
+                            alert('Error al actualizar el estado: ' + error);
+                        }
+                    }
                 });
             });
             
@@ -924,6 +1334,253 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             if (urlParams.has('medico') && $('#filtroMedico').length) {
                 $('#filtroMedico').val(urlParams.get('medico'));
+            }
+            
+            // === SOLUCIÓN MANUAL PARA DROPDOWN SIN BOOTSTRAP ===
+            // Desactivar la inicialización de Bootstrap dropdown para evitar errores
+            // $('[data-toggle="dropdown"]').dropdown();
+            
+            // Debugging - verificar si jQuery está cargado
+            console.log('jQuery version:', $.fn.jquery);
+            console.log('Bootstrap loaded:', typeof $.fn.dropdown !== 'undefined');
+            
+            // Implementación manual completa del dropdown
+            $(document).on('click', '.dropdown-toggle', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log('Dropdown toggle clicked!'); // Debug
+                
+                var $button = $(this);
+                var $dropdown = $button.next('.dropdown-menu');
+                var $allDropdowns = $('.dropdown-menu');
+                
+                // Cerrar otros dropdowns abiertos
+                $allDropdowns.not($dropdown).removeClass('show').hide();
+                
+                // Toggle el dropdown actual
+                if ($dropdown.hasClass('show')) {
+                    $dropdown.removeClass('show').hide();
+                    console.log('Dropdown hidden');
+                } else {
+                    $dropdown.addClass('show').show();
+                    
+                    // Ajustar posición si se sale de la pantalla
+                    var buttonOffset = $button.offset();
+                    var dropdownHeight = $dropdown.outerHeight();
+                    var dropdownWidth = $dropdown.outerWidth();
+                    var windowHeight = $(window).height();
+                    var windowWidth = $(window).width();
+                    var scrollTop = $(window).scrollTop();
+                    var scrollLeft = $(window).scrollLeft();
+                    
+                    // Verificar si se sale por abajo
+                    if ((buttonOffset.top + $button.outerHeight() + dropdownHeight - scrollTop) > windowHeight) {
+                        // Mostrar arriba del botón
+                        $dropdown.css({
+                            'top': 'auto',
+                            'bottom': '100%',
+                            'margin-bottom': '2px',
+                            'margin-top': '0'
+                        });
+                    } else {
+                        // Posición normal (abajo del botón)
+                        $dropdown.css({
+                            'top': '100%',
+                            'bottom': 'auto',
+                            'margin-top': '2px',
+                            'margin-bottom': '0'
+                        });
+                    }
+                    
+                    // Verificar si se sale por la derecha
+                    if ((buttonOffset.left + dropdownWidth - scrollLeft) > windowWidth) {
+                        // Alinear a la derecha
+                        $dropdown.css({
+                            'left': 'auto',
+                            'right': '0'
+                        });
+                    } else {
+                        // Posición normal (alineado a la izquierda)
+                        $dropdown.css({
+                            'left': '0',
+                            'right': 'auto'
+                        });
+                    }
+                    
+                    console.log('Dropdown shown');
+                }
+                
+                console.log('Dropdown show class:', $dropdown.hasClass('show')); // Debug
+            });
+            
+            // Cerrar dropdown al hacer click fuera
+            $(document).on('click', function(e) {
+                if (!$(e.target).closest('.dropdown').length) {
+                    $('.dropdown-menu').removeClass('show').hide();
+                    console.log('Dropdown closed by outside click'); // Debug
+                }
+            });
+            
+            // Prevenir que se cierre el dropdown al hacer click en los items del formulario
+            $(document).on('click', '.dropdown-menu', function(e) {
+                e.stopPropagation();
+            });
+            
+            // Manejar clicks en los items del dropdown
+            $(document).on('click', '.dropdown-item', function(e) {
+                e.preventDefault();
+                var $item = $(this);
+                var estadoValue = $item.attr('value') || $item.data('value');
+                var $form = $item.closest('.estado-form');
+                var $button = $item.closest('.btn-group').find('.dropdown-toggle');
+                
+                console.log('Dropdown item clicked:', $item.text().trim(), 'Value:', estadoValue);
+                
+                // Validación especial para estado "en_consulta"
+                if (estadoValue === 'en_consulta') {
+                    var currentRow = $button.closest('tr');
+                    var currentMedicoNombre = currentRow.find('.medico-nombre-hidden').val();
+                    var currentTurnoId = currentRow.find('input[name="turno_id"]').val();
+                    
+                    // Verificar si ya hay otro paciente en consulta con el mismo médico
+                    var conflictFound = false;
+                    var conflictPatient = '';
+                    
+                    $('table tbody tr').each(function() {
+                        var $row = $(this);
+                        var rowTurnoId = $row.find('input[name="turno_id"]').val();
+                        var rowMedicoNombre = $row.find('.medico-nombre-hidden').val();
+                        var $rowButton = $row.find('.dropdown-toggle');
+                        var currentEstado = $rowButton.attr('data-estado-actual');
+                        
+                        // Si es una fila diferente, mismo médico, y ya está en consulta
+                        if (rowTurnoId !== currentTurnoId && 
+                            rowMedicoNombre === currentMedicoNombre && 
+                            currentEstado === 'en_consulta') {
+                            
+                            conflictFound = true;
+                            var pacienteNombre = $row.find('td:nth-child(3)').text().trim();
+                            conflictPatient = pacienteNombre;
+                            return false; // Break the loop
+                        }
+                    });
+                    
+                    if (conflictFound) {
+                        alert('Ya hay otro paciente (' + conflictPatient + ') en consulta con ' + currentMedicoNombre + '. Solo se puede atender un paciente a la vez por médico.');
+                        $('.dropdown-menu').removeClass('show').hide();
+                        return false;
+                    }
+                }
+                
+                // Agregar el valor del estado al formulario si no existe
+                if (estadoValue) {
+                    var $estadoInput = $form.find('input[name="estado"]');
+                    if ($estadoInput.length === 0) {
+                        $form.append('<input type="hidden" name="estado" value="' + estadoValue + '">');
+                    } else {
+                        $estadoInput.val(estadoValue);
+                    }
+                }
+                
+                // Actualizar el botón inmediatamente con el nuevo estado
+                updateButtonState($button, estadoValue, $item.text().trim());
+                
+                // También actualizar la clase de la fila de la tabla
+                var $row = $button.closest('tr');
+                $row.removeClass('estado-pendiente estado-en_consulta estado-atendido estado-cancelado');
+                $row.addClass('estado-' + estadoValue);
+                
+                // Cerrar el dropdown
+                $('.dropdown-menu').removeClass('show').hide();
+                
+                // Enviar el formulario
+                $form.trigger('submit');
+            });
+            
+            // Función para actualizar el estado del botón
+            function updateButtonState($button, estadoValue, estadoTexto) {
+                console.log('Updating button state to:', estadoValue, estadoTexto); // Debug
+                
+                // Remover todas las clases de color anteriores
+                $button.removeClass('btn-warning btn-info btn-success btn-danger btn-secondary');
+                
+                // Determinar la nueva clase de color, texto e icono
+                var newColorClass = 'btn-secondary';
+                var newText = 'Estado';
+                var newIcon = 'fas fa-cog';
+                
+                switch(estadoValue) {
+                    case 'pendiente':
+                        newColorClass = 'btn-warning';
+                        newText = 'Pendiente';
+                        newIcon = 'fas fa-clock';
+                        break;
+                    case 'en_consulta':
+                        newColorClass = 'btn-info';
+                        newText = 'En Consulta';
+                        newIcon = 'fas fa-stethoscope';
+                        break;
+                    case 'atendido':
+                        newColorClass = 'btn-success';
+                        newText = 'Atendido';
+                        newIcon = 'fas fa-check-circle';
+                        break;
+                    case 'cancelado':
+                        newColorClass = 'btn-danger';
+                        newText = 'Cancelado';
+                        newIcon = 'fas fa-times-circle';
+                        break;
+                }
+                
+                // Aplicar la nueva clase con !important forzando el estilo
+                $button.addClass(newColorClass + ' btn-estado');
+                $button.attr('data-estado-actual', estadoValue);
+                
+                // Actualizar el HTML del botón
+                $button.html('<i class="' + newIcon + ' mr-1"></i>' + newText);
+                
+                // Forzar la aplicación de estilos usando CSS directo si es necesario
+                setTimeout(function() {
+                    switch(estadoValue) {
+                        case 'pendiente':
+                            $button.css({
+                                'background-color': '#ffc107',
+                                'border-color': '#ffc107',
+                                'color': '#212529'
+                            });
+                            break;
+                        case 'en_consulta':
+                            $button.css({
+                                'background-color': '#17a2b8',
+                                'border-color': '#17a2b8',
+                                'color': '#fff'
+                            });
+                            break;
+                        case 'atendido':
+                            $button.css({
+                                'background-color': '#28a745',
+                                'border-color': '#28a745',
+                                'color': '#fff'
+                            });
+                            break;
+                        case 'cancelado':
+                            $button.css({
+                                'background-color': '#dc3545',
+                                'border-color': '#dc3545',
+                                'color': '#fff'
+                            });
+                            break;
+                        default:
+                            $button.css({
+                                'background-color': '#6c757d',
+                                'border-color': '#6c757d',
+                                'color': '#fff'
+                            });
+                    }
+                }, 50);
+                
+                console.log('Button updated - Class:', newColorClass, 'Text:', newText, 'Icon:', newIcon);
             }
         });
     </script>
