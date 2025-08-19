@@ -657,7 +657,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 <th>#</th>
                                 <th>Hora</th>
                                 <th>Paciente</th>
-                                <th>CEDULA</th>
+                                <th>Cedula</th>
                                 <th>Tipo</th>
                                 <?php if ($multi_medico): ?>
                                 <th>Médico</th>
