@@ -757,6 +757,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             $estado_color = 'btn-secondary';
                                     }
                                     
+                                    echo "<div class='d-flex align-items-center flex-wrap'>";
                                     echo "<div class='btn-group mr-2 mb-1'>
                                             <button type='button' class='btn btn-sm $estado_color btn-estado dropdown-toggle' aria-haspopup='true' aria-expanded='false' data-estado-actual='$estado_actual'>
                                                 <i class='$estado_icono mr-1'></i>$estado_texto
@@ -780,12 +781,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                 </form>
                                             </div>
                                         </div>";
-                                    echo "<a href='ver_paciente.php?id=".$row['paciente_id']."' class='btn btn-success btn-sm'><i class='fas fa-user'></i></a>";
+                                    echo "<a href='ver_paciente.php?id=".$row['paciente_id']."' class='btn btn-success btn-sm mr-1 mb-1'><i class='fas fa-user'></i></a>";
                                     
                                     // Solo mostrar botón de facturar si el paciente está en consulta
                                     if ($row['estado'] === 'en_consulta') {
                                         $seguro_valor = (array_key_exists('seguro_medico', $row) && $row['seguro_medico'] !== null) ? $row['seguro_medico'] : '';
-                                        echo "<button type='button' class='btn btn-warning btn-sm ml-1' data-toggle='modal' data-target='#modalFacturar' 
+                                        echo "<button type='button' class='btn btn-warning btn-sm mb-1' data-toggle='modal' data-target='#modalFacturar' 
                                             data-paciente-nombre='".htmlspecialchars($row['nombre'].' '.$row['apellido'])."' 
                                             data-seguro='".htmlspecialchars($seguro_valor)."' 
                                             data-seguro-monto='' 
@@ -793,6 +794,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             <i class='fas fa-file-invoice-dollar'></i> Facturar
                                         </button>";
                                     }
+                                    echo "</div>"; // Cerrar el div d-flex
                                     echo "</td>";
                                     echo "</tr>";
                                 }
