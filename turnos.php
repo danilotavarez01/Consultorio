@@ -879,13 +879,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                     </div>
                                                 </div>
                                                 <div class="row">
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group mb-3">
+                                                            <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-hashtag mr-1"></i> Recibo No.</label>
+                                                            <input type="text" class="form-control border-success bg-white" id="facturar_recibo_no" name="facturar_recibo_no" style="color:#222; font-size:1.1rem; font-weight:500; height:40px;" placeholder="Número de recibo" autocomplete="off">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
                                                         <div class="form-group mb-3">
                                                             <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-percent mr-1"></i> Descuento (%)</label>
                                                             <input type="number" class="form-control border-success bg-white" id="facturar_descuento" name="facturar_descuento" min="0" max="100" value="0" style="color:#222; font-size:1.1rem; font-weight:500; height:40px;">
                                                         </div>
                                                     </div>
-                                                    <div class="col-md-6">
+                                                    <div class="col-md-4">
                                                         <div class="form-group mb-3">
                                                             <label class="font-weight-bold mb-1" style="color:#1a3c1a;"><i class="fas fa-receipt mr-1"></i> Impuesto (%)</label>
                                                             <input type="number" class="form-control border-success bg-white" id="facturar_impuesto" name="facturar_impuesto" min="0" max="100" value="0" style="color:#222; font-size:1.1rem; font-weight:500; height:40px;">
