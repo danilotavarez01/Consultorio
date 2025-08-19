@@ -505,6 +505,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             transition: all 0.2s ease-in-out !important;
             font-weight: 500 !important;
             border-width: 1px !important;
+            min-width: 110px !important; /* Ancho fijo basado en "En Consulta" */
+            text-align: center !important;
         }
         
         /* Estados específicos con !important para asegurar que se apliquen */
