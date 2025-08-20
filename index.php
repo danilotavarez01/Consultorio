@@ -1,5 +1,8 @@
+
 <?php
+
 require_once 'session_config.php';
+
 session_start();
 require_once "permissions.php";
 
@@ -162,7 +165,7 @@ try {
             <div class="col-md-10 content">
                 <div class="row">
                     <div class="col-md-12">
-                        <h2>Bienvenido, <?php echo htmlspecialchars($_SESSION["nombre"]); ?></h2>
+                        <h2 style="color: white;">Bienvenido, <?php echo htmlspecialchars($_SESSION["nombre"]); ?></h2>
                         <hr>
                         <?php if (!$db_connected): ?>
                         <div class="alert alert-danger">
