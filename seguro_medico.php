@@ -1,11 +1,12 @@
 <?php
+require_once 'session_config.php';
 session_start();
 require_once 'config.php';
-require_once 'page_template.php';
+require_once 'permissions.php';
 
-// Verificar autenticación
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+// Verificar que el usuario esté logueado
+if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || !isset($_SESSION['id'])) {
+    header('Location: index.php');
     exit();
 }
 
