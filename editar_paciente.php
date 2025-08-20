@@ -23,8 +23,11 @@ $error = null;
 if (isset($_GET['id']) && !empty($_GET['id'])) {
     $id = $_GET['id'];
     
-    // Obtener datos del paciente
-    $sql = "SELECT * FROM pacientes WHERE id = ?";
+    // Obtener datos del paciente con información del seguro médico
+    $sql = "SELECT p.*, sm.descripcion as seguro_medico_nombre 
+            FROM pacientes p 
+            LEFT JOIN seguro_medico sm ON p.seguro_medico_id = sm.id 
+            WHERE p.id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$id]);
     $paciente = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -62,7 +65,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                 telefono = ?, 
                 email = ?, 
                 direccion = ?,
-                seguro_medico = ?,
+                seguro_medico_id = ?,
                 numero_poliza = ?,
                 contacto_emergencia = ?,
                 telefono_emergencia = ?
@@ -77,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         $stmt->bindParam(6, $_POST['telefono'], PDO::PARAM_STR);
         $stmt->bindParam(7, $_POST['email'], PDO::PARAM_STR);
         $stmt->bindParam(8, $_POST['direccion'], PDO::PARAM_STR);
-        $stmt->bindParam(9, $_POST['seguro_medico'], PDO::PARAM_STR);
+        $stmt->bindParam(9, $_POST['seguro_medico_id'] === '' ? null : $_POST['seguro_medico_id'], PDO::PARAM_INT);
         $stmt->bindParam(10, $_POST['numero_poliza'], PDO::PARAM_STR);
         $stmt->bindParam(11, $_POST['contacto_emergencia'], PDO::PARAM_STR);
         $stmt->bindParam(12, $_POST['telefono_emergencia'], PDO::PARAM_STR);
@@ -201,6 +204,15 @@ $enfermedades = [];
 if ($mostrarEnfermedades) {
     $enfermedades = $conn->query("SELECT * FROM enfermedades ORDER BY nombre")->fetchAll();
 }
+
+// Obtener lista de seguros médicos
+$seguros_medicos = [];
+try {
+    $stmt = $conn->query("SELECT id, descripcion FROM seguro_medico WHERE activo = 1 ORDER BY descripcion");
+    $seguros_medicos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // Si hay error con la tabla seguro_medico, continuar sin ella
+}
 ?>
 
 <!DOCTYPE html>
@@ -313,7 +325,15 @@ if ($mostrarEnfermedades) {
                             <div class="form-row">
                                 <div class="form-group col-md-6">
                                     <label>Seguro Médico</label>
-                                    <input type="text" name="seguro_medico" class="form-control" value="<?php echo isset($paciente['seguro_medico']) ? htmlspecialchars($paciente['seguro_medico']) : ''; ?>">
+                                    <select name="seguro_medico_id" class="form-control">
+                                        <option value="">Sin seguro médico</option>
+                                        <?php foreach($seguros_medicos as $seguro): ?>
+                                            <option value="<?php echo $seguro['id']; ?>" 
+                                                <?php echo (isset($paciente['seguro_medico_id']) && $paciente['seguro_medico_id'] == $seguro['id']) ? 'selected' : ''; ?>>
+                                                <?php echo htmlspecialchars($seguro['descripcion']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
                                 <div class="form-group col-md-6">
                                     <label>Número de Póliza</label>
