@@ -697,17 +697,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             
                             if ($checkColumn->rowCount() > 0) {
                                 // Si la columna existe, ordenar por ella
-                                $sql = "SELECT t.*, p.nombre, p.apellido, p.dni 
-                                        , p.seguro_medico 
+                                $sql = "SELECT t.*, p.nombre, p.apellido, p.dni, 
+                                        sm.descripcion as seguro_medico_nombre
                                         FROM turnos t 
                                         JOIN pacientes p ON t.paciente_id = p.id 
+                                        LEFT JOIN seguro_medico sm ON p.seguro_medico_id = sm.id
                                         WHERE $where_clause 
                                         ORDER BY t.orden_llegada IS NULL, t.orden_llegada, t.hora_turno";
                             } else {
                                 // Si la columna no existe, usar el orden normal
-                                $sql = "SELECT t.*, p.nombre, p.apellido, p.dni 
+                                $sql = "SELECT t.*, p.nombre, p.apellido, p.dni,
+                                        sm.descripcion as seguro_medico_nombre
                                         FROM turnos t 
                                         JOIN pacientes p ON t.paciente_id = p.id 
+                                        LEFT JOIN seguro_medico sm ON p.seguro_medico_id = sm.id
                                         WHERE $where_clause 
                                         ORDER BY t.hora_turno";
                             }
@@ -795,7 +798,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     
                                     // Solo mostrar botón de facturar si el paciente está en consulta
                                     if ($row['estado'] === 'en_consulta') {
-                                        $seguro_valor = (array_key_exists('seguro_medico', $row) && $row['seguro_medico'] !== null) ? $row['seguro_medico'] : '';
+                                        $seguro_valor = (array_key_exists('seguro_medico_nombre', $row) && $row['seguro_medico_nombre'] !== null) ? $row['seguro_medico_nombre'] : 'Sin seguro médico';
                                         echo "<button type='button' class='btn btn-warning btn-sm mb-1' data-toggle='modal' data-target='#modalFacturar' 
                                             data-paciente-nombre='".htmlspecialchars($row['nombre'].' '.$row['apellido'])."' 
                                             data-seguro='".htmlspecialchars($seguro_valor)."' 
