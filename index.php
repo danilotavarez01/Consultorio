@@ -144,10 +144,22 @@ try {
         }
         h2 {
             margin-bottom: 0.5rem;
+            color: var(--text-color, #212529); /* Color adaptativo según el tema */
         }
         hr {
             margin-top: 0.5rem;
             margin-bottom: 0.5rem;
+        }
+        
+        /* Estilos para modo oscuro */
+        [data-theme="dark"] h2 {
+            color: #ffffff !important;
+        }
+        
+        /* Estilos para modo claro */
+        [data-theme="light"] h2,
+        body:not([data-theme]) h2 {
+            color: #212529 !important;
         }
     </style>
 </head>
@@ -165,7 +177,7 @@ try {
             <div class="col-md-10 content">
                 <div class="row">
                     <div class="col-md-12">
-                        <h2 style="color: white;">Bienvenido, <?php echo htmlspecialchars($_SESSION["nombre"]); ?></h2>
+                        <h2>Bienvenido, <?php echo htmlspecialchars($_SESSION["nombre"]); ?></h2>
                         <hr>
                         <?php if (!$db_connected): ?>
                         <div class="alert alert-danger">
