@@ -46,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 // Insertar paciente
                 $sql = "INSERT INTO pacientes (nombre, apellido, dni, sexo, fecha_nacimiento, telefono, email, direccion, 
-                        seguro_medico, numero_poliza, contacto_emergencia, telefono_emergencia, foto) 
+                        seguro_medico_id, numero_poliza, contacto_emergencia, telefono_emergencia, foto) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
                 if ($stmt = $conn->prepare($sql)) {
                     $stmt->bindParam(1, $_POST['nombre'], PDO::PARAM_STR);
@@ -57,7 +57,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $stmt->bindParam(6, $_POST['telefono'], PDO::PARAM_STR);
                     $stmt->bindParam(7, $_POST['email'], PDO::PARAM_STR);
                     $stmt->bindParam(8, $_POST['direccion'], PDO::PARAM_STR);
-                    $stmt->bindParam(9, $_POST['seguro_medico'], PDO::PARAM_STR);
+                    
+                    // Usar seguro_medico_id del select o NULL si está vacío
+                    $seguro_medico_id = !empty($_POST['seguro_medico_id']) ? $_POST['seguro_medico_id'] : null;
+                    $stmt->bindParam(9, $seguro_medico_id, PDO::PARAM_INT);
+                    
                     $stmt->bindParam(10, $_POST['numero_poliza'], PDO::PARAM_STR);
                     $stmt->bindParam(11, $_POST['contacto_emergencia'], PDO::PARAM_STR);
                     $stmt->bindParam(12, $_POST['telefono_emergencia'], PDO::PARAM_STR);
@@ -122,6 +126,16 @@ $mostrarEnfermedades = hasPermission('manage_diseases');
 $enfermedades = [];
 if ($mostrarEnfermedades) {
     $enfermedades = $conn->query("SELECT * FROM enfermedades ORDER BY nombre")->fetchAll();
+}
+
+// Obtener lista de seguros médicos
+$seguros_medicos = [];
+try {
+    $stmt = $conn->query("SELECT id, descripcion FROM seguro_medico WHERE activo = 1 ORDER BY descripcion");
+    $seguros_medicos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch(PDOException $e) {
+    // Si hay error, continuar sin seguros médicos
+    $seguros_medicos = [];
 }
 ?>
 
@@ -218,6 +232,7 @@ if ($mostrarEnfermedades) {
                                 <th>Edad</th>
                                 <th>Teléfono</th>
                                 <th>Email</th>
+                                <th>Seguro Médico</th>
                                 <?php if ($mostrarEnfermedades): ?>
                                 <th>Enfermedades</th>
                                 <?php endif; ?>
@@ -226,8 +241,11 @@ if ($mostrarEnfermedades) {
                         </thead>
                         <tbody>
                             <?php
-                            $sql = "SELECT p.*, GROUP_CONCAT(e.nombre SEPARATOR ', ') as enfermedades 
+                            $sql = "SELECT p.*, 
+                                          sm.descripcion as seguro_medico_nombre,
+                                          GROUP_CONCAT(e.nombre SEPARATOR ', ') as enfermedades 
                                    FROM pacientes p 
+                                   LEFT JOIN seguro_medico sm ON p.seguro_medico_id = sm.id
                                    LEFT JOIN paciente_enfermedades pe ON p.id = pe.paciente_id 
                                    LEFT JOIN enfermedades e ON pe.enfermedad_id = e.id 
                                    GROUP BY p.id 
@@ -260,6 +278,7 @@ if ($mostrarEnfermedades) {
                                 echo "<td>".$age." años</td>";
                                 echo "<td>".$row['telefono']."</td>";
                                 echo "<td>".$row['email']."</td>";
+                                echo "<td>".($row['seguro_medico_nombre'] ? htmlspecialchars($row['seguro_medico_nombre']) : 'Sin seguro')."</td>";
                                 if ($mostrarEnfermedades) {
                                     echo "<td>".($row['enfermedades'] ? htmlspecialchars($row['enfermedades']) : 'Ninguna')."</td>";
                                 }
@@ -337,7 +356,14 @@ if ($mostrarEnfermedades) {
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>Seguro Médico</label>
-                                <input type="text" name="seguro_medico" class="form-control">
+                                <select name="seguro_medico_id" class="form-control">
+                                    <option value="">Seleccionar seguro médico...</option>
+                                    <?php foreach($seguros_medicos as $seguro): ?>
+                                        <option value="<?php echo $seguro['id']; ?>">
+                                            <?php echo htmlspecialchars($seguro['descripcion']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Número de Póliza</label>
