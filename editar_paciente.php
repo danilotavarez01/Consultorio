@@ -72,6 +72,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                 WHERE id = ?";
         
         $stmt = $conn->prepare($sql);
+        
+        // Preparar variable para seguro médico (evitar pasar expresión por referencia)
+        $seguro_medico_id = ($_POST['seguro_medico_id'] === '' || $_POST['seguro_medico_id'] === null) ? null : (int)$_POST['seguro_medico_id'];
+        
         $stmt->bindParam(1, $_POST['nombre'], PDO::PARAM_STR);
         $stmt->bindParam(2, $_POST['apellido'], PDO::PARAM_STR);
         $stmt->bindParam(3, $_POST['dni'], PDO::PARAM_STR);
@@ -80,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
         $stmt->bindParam(6, $_POST['telefono'], PDO::PARAM_STR);
         $stmt->bindParam(7, $_POST['email'], PDO::PARAM_STR);
         $stmt->bindParam(8, $_POST['direccion'], PDO::PARAM_STR);
-        $stmt->bindParam(9, $_POST['seguro_medico_id'] === '' ? null : $_POST['seguro_medico_id'], PDO::PARAM_INT);
+        $stmt->bindParam(9, $seguro_medico_id, PDO::PARAM_INT);
         $stmt->bindParam(10, $_POST['numero_poliza'], PDO::PARAM_STR);
         $stmt->bindParam(11, $_POST['contacto_emergencia'], PDO::PARAM_STR);
         $stmt->bindParam(12, $_POST['telefono_emergencia'], PDO::PARAM_STR);
