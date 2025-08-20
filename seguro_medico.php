@@ -119,11 +119,16 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seguros Médicos - Sistema de Consultorio</title>
+    <title>Seguros Médicos - Consultorio Médico</title>
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <link rel="stylesheet" href="assets/css/fontawesome.min.css">
-    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
     <style>
+        .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
+        .sidebar a { color: #fff; padding: 10px 15px; display: block; }
+        .sidebar a:hover { background-color: #454d55; text-decoration: none; }
+        .content { padding: 20px; }
+        
         .badge-activo { background-color: #28a745 !important; }
         .badge-inactivo { background-color: #dc3545 !important; }
         .card-stats {
@@ -133,6 +138,13 @@ try {
         }
         .btn-grupo {
             gap: 5px;
+        }
+        
+        /* Efectos hover para las filas */
+        .table-hover tbody tr:hover {
+            transform: translateY(-1px);
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -148,15 +160,37 @@ try {
 
             <!-- Content -->
             <div class="col-md-10 content">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h2><i class="fas fa-shield-alt mr-2"></i>Seguros Médicos</h2>
-                        <p class="text-muted">Gestión de seguros médicos y ARS</p>
-                    </div>
+                <h2><i class="fas fa-shield-alt mr-2"></i>Seguros Médicos</h2>
+                <hr>
+
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <p class="text-muted mb-0">Gestión de seguros médicos y ARS</p>
                     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalCrear">
                         <i class="fas fa-plus mr-2"></i>Nuevo Seguro
                     </button>
                 </div>
+
+                <!-- Alertas -->
+                <?php if(isset($_GET['mensaje'])): ?>
+                <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <div><?php echo htmlspecialchars($_GET['mensaje']); ?></div>
+                    <button type="button" class="close ml-auto" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <?php endif; ?>
+
+                <?php if(isset($error)): ?>
+                <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <div><?php echo htmlspecialchars($error); ?></div>
+                    <button type="button" class="close ml-auto" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <?php endif; ?>
 
                 <!-- Estadísticas -->
                 <div class="row mb-4">
@@ -194,27 +228,6 @@ try {
                     </div>
                 </div>
 
-                <!-- Alertas -->
-                <?php if(isset($_GET['mensaje'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle mr-2"></i>
-                    <?php echo htmlspecialchars($_GET['mensaje']); ?>
-                    <button type="button" class="close" data-dismiss="alert">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <?php endif; ?>
-
-                <?php if(isset($error)): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    <?php echo htmlspecialchars($error); ?>
-                    <button type="button" class="close" data-dismiss="alert">
-                        <span>&times;</span>
-                    </button>
-                </div>
-                <?php endif; ?>
-
                 <!-- Filtros -->
                 <div class="card mb-4">
                     <div class="card-body">
@@ -246,7 +259,6 @@ try {
                 </div>
 
                 <!-- Tabla -->
-                <div class="card">
                     <div class="card-body">
                         <div class="table-responsive">
                             <table class="table table-hover">
@@ -397,7 +409,7 @@ try {
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/popper-2.5.4.min.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
-    <script src="js/theme-manager.js"></script>
+    <script src="js/dark-mode.js"></script>
     
     <script>
         function editarSeguro(id, descripcion) {
