@@ -44,7 +44,8 @@ $PERMISSIONS = [
         'crear_factura', // Permiso para crear facturas
         'editar_factura', // Permiso para editar facturas
         'anular_factura', // Permiso para anular facturas
-        'ver_reportes_facturacion' // Permiso para ver reportes de facturación
+        'ver_reportes_facturacion', // Permiso para ver reportes de facturación
+        'seguros_medicos' // Permiso para gestionar seguros médicos
     ],    ROLE_DOCTOR => [
         'manage_patients',
         'manage_appointments',
@@ -62,7 +63,8 @@ $PERMISSIONS = [
         'view_procedures', // Los doctores pueden ver procedimientos pero no modificarlos por defecto
         'ver_facturacion', // Permiso para ver facturación
         'crear_factura', // Permiso para crear facturas
-        'ver_reportes_facturacion' // Permiso para ver reportes de facturación
+        'ver_reportes_facturacion', // Permiso para ver reportes de facturación
+        'seguros_medicos' // Permiso para gestionar seguros médicos
     ],
     ROLE_RECEPTIONIST => [],  // Base permissions, will be loaded from database
     ROLE_SUPPORT => [

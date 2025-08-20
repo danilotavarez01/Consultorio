@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once 'config.php';
-require_once 'functions.php';
+require_once 'page_template.php';
 
 // Verificar autenticación
 if (!isset($_SESSION['user_id'])) {
@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 // Verificar permisos
-if (!verificarPermiso($_SESSION['user_id'], 'seguros_medicos')) {
+if (!hasPermission('seguros_medicos')) {
     header("Location: index.php?error=Sin permisos para acceder a seguros médicos");
     exit();
 }
