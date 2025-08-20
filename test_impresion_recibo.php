@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Script para probar el sistema de impresión de recibos
  * Simula un pago y abre la ventana de impresión
@@ -81,8 +81,8 @@ if (isset($_POST['crear_pago_prueba'])) {
 <head>
     <meta charset="UTF-8">
     <title>Test de Impresión de Recibos - Consultorio</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
 </head>
 <body>
@@ -335,3 +335,4 @@ function limpiarDatos() {
 <script src="js/theme-manager.js"></script>
 </body>
 </html>
+

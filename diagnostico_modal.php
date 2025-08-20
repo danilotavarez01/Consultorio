@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once 'config.php';
@@ -135,7 +135,7 @@ echo "<li><strong>Envía:</strong> Al hacer clic en 'Registrar Pago', se debe mo
 echo "</ol>";
 ?>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="assets/js/jquery.min.js"></script>
 <script>
 $(document).ready(function() {
     // Test de jQuery
@@ -151,3 +151,4 @@ $(document).ready(function() {
     console.log('🔍 Diagnóstico completado - jQuery y Bootstrap cargados');
 });
 </script>
+

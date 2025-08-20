@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // LIBRERÍAS LOCALES OPTIMIZADAS - Generado automáticamente
 function incluir_libs_locales() {
     $base_url = "/Consultorio2/assets/libs/";
@@ -16,10 +16,10 @@ function incluir_libs_locales() {
 function incluir_libs_fallback() {
     echo '
     <!-- CDN Fallback -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="assets/css/bootstrap-5.1.3.min.css" rel="stylesheet">
+    <link href="assets/css/fontawesome-6.0.0.min.css" rel="stylesheet">
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
     ';
 }
 
@@ -49,3 +49,6 @@ function incluir_libs_optimizadas() {
     }
 }
 ?>
+
+
+

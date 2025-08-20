@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 
 echo "<h2>🔍 DIAGNÓSTICO DE RENDIMIENTO DEL SISTEMA</h2>";
@@ -185,10 +185,10 @@ if (empty($large_files)) {
 // 5. RECURSOS EXTERNOS
 echo "<h3>5. Recursos Externos (CDN)</h3>";
 $external_resources = [
-    'jQuery' => 'https://code.jquery.com/jquery-3.5.1.min.js',
-    'Bootstrap CSS' => 'https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css',
-    'Bootstrap JS' => 'https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js',
-    'Font Awesome' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'
+    'jQuery' => 'assets/js/jquery.min.js',
+    'Bootstrap CSS' => 'assets/css/bootstrap.min.css',
+    'Bootstrap JS' => 'assets/js/bootstrap.bundle.min.js',
+    'Font Awesome' => 'assets/css/fontawesome.min.css'
 ];
 
 echo "<table border='1' style='width:100%; margin:10px 0;'>";
@@ -253,3 +253,4 @@ echo "<hr>";
 echo "<p><a href='facturacion.php' class='btn btn-primary'>← Volver a Facturación</a></p>";
 echo "<p><a href='optimizar_sistema.php' class='btn btn-success'>🚀 Aplicar Optimizaciones</a></p>";
 ?>
+

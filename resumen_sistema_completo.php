@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once "config.php";
 
 echo "<h1>🎉 SISTEMA DE CONSULTAS AVANZADO - IMPLEMENTACIÓN COMPLETADA</h1>";
@@ -213,8 +213,9 @@ try {
 }
 ?>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<link rel="stylesheet" href="assets/css/fontawesome.min.css">
 <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fa; margin: 0; padding: 20px; }
     .container { max-width: 1200px; margin: 0 auto; }
 </style>
+

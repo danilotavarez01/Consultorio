@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once 'config.php';
 
@@ -162,8 +162,8 @@ try {
 
 ?>
 
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/css/fontawesome.min.css">
 <style>
     body { padding: 20px; font-family: Arial, sans-serif; }
     .container { max-width: 900px; margin: 0 auto; }
@@ -178,3 +178,5 @@ try {
         <a href="configurar_permisos.php" class="btn btn-warning">🔑 Configurar Permisos</a>
     </div>
 </div>
+
+

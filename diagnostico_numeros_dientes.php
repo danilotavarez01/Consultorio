@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Script para diagnosticar específicamente los números de los dientes en consultas recientes
 session_start();
 require_once "config.php";
@@ -117,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <title>Diagnóstico - Números de Dientes</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body { padding: 20px; }
         .tooth-grid {
@@ -332,3 +332,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 </body>
 </html>
+

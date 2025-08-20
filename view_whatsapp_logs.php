@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Script para visualizar los registros de WhatsApp
 header('Content-Type: text/html; charset=UTF-8');
 
@@ -20,7 +20,7 @@ echo "<!DOCTYPE html>
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Registros de WhatsApp</title>
-    <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='assets/css/bootstrap.min.css'>
     <style>
         .log-entry {
             border-bottom: 1px solid #eee;
@@ -106,3 +106,4 @@ echo "<div class='mt-3 mb-3'>
 </body>
 </html>";
 ?>
+

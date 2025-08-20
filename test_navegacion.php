@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 
@@ -24,7 +24,7 @@ $_SESSION['last_activity'] = time();
 <head>
     <meta charset="UTF-8">
     <title>Test de Navegación - Consultorio</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         .test-card { margin: 20px 0; }
         .status-ok { color: #28a745; }
@@ -143,8 +143,8 @@ $_SESSION['last_activity'] = time();
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
     <script src="js/theme-manager.js"></script>
 <script>
 // Debug de JavaScript
@@ -167,3 +167,4 @@ $('a[href$=".php"]').on('click', function(e) {
 
 </body>
 </html>
+

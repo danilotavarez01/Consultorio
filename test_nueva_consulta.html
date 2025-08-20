@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Nueva Consulta - Test</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+    <style>
+        .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
+        .sidebar a { color: #fff; padding: 10px 15px; display: block; }
+        .sidebar a:hover { background-color: #454d55; text-decoration: none; }
+        .content { padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-10 content">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2><i class="fas fa-stethoscope"></i> Nueva Consulta Médica (Test)</h2>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </button>
+                </div>
+                <hr>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Test de recursos locales:</strong> Si puedes ver los íconos y estilos correctamente, 
+                    los recursos locales están funcionando en nueva_consulta.php
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0"><i class="fas fa-user-md"></i> Consulta para: Paciente de Prueba</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="consultaForm">
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label><i class="fas fa-calendar"></i> Fecha de Consulta</label>
+                                    <input type="date" name="fecha" class="form-control" value="2025-08-02" required>
+                                    <!-- Letrero para mostrar fecha de parto -->
+                                    <div id="letrero-fecha-parto" class="alert alert-success mt-2" style="display: none;">
+                                        <i class="fas fa-baby"></i> <strong>Fecha probable de parto:</strong> 
+                                        <span id="fecha-parto-calculada"></span>
+                                        <br><small class="text-muted">Calculada con Fórmula de Naegele (FUR + 280 días)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Campos de prueba para ginecología -->
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="campo_embarazada" name="campo_embarazada" value="1">
+                                        <label class="form-check-label" for="campo_embarazada">
+                                            <i class="fas fa-baby"></i> Embarazada
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="campo_fecha_ultima_regla"><i class="fas fa-calendar-alt"></i> Fecha Última Regla</label>
+                                    <input type="date" class="form-control" id="campo_fecha_ultima_regla" name="campo_fecha_ultima_regla">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="button" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Guardar Consulta (Test)
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            console.log('jQuery cargado correctamente en nueva_consulta test');
+            
+            // Función para calcular fecha de parto usando Fórmula de Naegele
+            function calcularFechaParto(fechaUltimaRegla) {
+                if (!fechaUltimaRegla) return null;
+                
+                const fechaUR = new Date(fechaUltimaRegla);
+                if (isNaN(fechaUR.getTime())) return null;
+                
+                // Fórmula de Naegele: FUR + 280 días
+                const fechaParto = new Date(fechaUR);
+                fechaParto.setDate(fechaParto.getDate() + 280);
+                
+                return fechaParto;
+            }
+            
+            // Función para actualizar la fecha de parto
+            function actualizarFechaParto() {
+                const embarazada = $('#campo_embarazada').is(':checked');
+                const fechaUltimaRegla = $('#campo_fecha_ultima_regla').val();
+                
+                if (embarazada && fechaUltimaRegla) {
+                    const fechaParto = calcularFechaParto(fechaUltimaRegla);
+                    if (fechaParto) {
+                        const fechaPartoStr = fechaParto.toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        
+                        $('#fecha-parto-calculada').text(fechaPartoStr);
+                        $('#letrero-fecha-parto').slideDown();
+                        console.log('Fecha de parto calculada:', fechaPartoStr);
+                    }
+                } else {
+                    $('#letrero-fecha-parto').slideUp();
+                }
+            }
+            
+            // Event listeners
+            $('#campo_embarazada').change(actualizarFechaParto);
+            $('#campo_fecha_ultima_regla').change(actualizarFechaParto);
+        });
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once "permissions.php";
@@ -153,36 +153,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['action']) && $_POST['a
                     } else {
                         $error = "Tipo de archivo no permitido. Solo se permiten imágenes JPEG, PNG y GIF.";
                     }
-                } elseif ($_POST['fotoSource'] == 'camera') {
+                } elseif ($_POST['fotoSource'] == 'camera' && !empty($_POST['fotoBase64'])) {
                     // Procesar foto desde la cámara (Base64)
-                    if (isset($_POST['fotoBase64']) && !empty($_POST['fotoBase64'])) {
-                        // Verificar que existe el directorio de uploads
-                        $uploadDir = 'uploads/pacientes/';
-                        if (!file_exists($uploadDir)) {
-                            mkdir($uploadDir, 0755, true);
+                    // Verificar que existe el directorio de uploads
+                    $uploadDir = 'uploads/pacientes/';
+                    if (!file_exists($uploadDir)) {
+                        mkdir($uploadDir, 0755, true);
+                    }
+                    
+                    $base64String = $_POST['fotoBase64'];
+                    // Eliminar el prefijo de los datos base64
+                    $base64String = preg_replace('#^data:image/\w+;base64,#i', '', $base64String);
+                    $imageData = base64_decode($base64String);
+                    
+                    $newFileName = uniqid('foto_', true) . '.jpg';
+                    $dest_path = $uploadDir . $newFileName;
+                    
+                    if (file_put_contents($dest_path, $imageData)) {
+                        // Eliminar foto anterior si existe
+                        if (!empty($paciente['foto']) && file_exists($uploadDir . $paciente['foto'])) {
+                            @unlink($uploadDir . $paciente['foto']);
                         }
                         
-                        $base64String = $_POST['fotoBase64'];
-                        $base64String = preg_replace('#^data:image/\w+;base64,#i', '', $base64String);
-                        $base64String = str_replace(' ', '+', $base64String);
-                        $imageData = base64_decode($base64String);
-                        
-                        $newFileName = uniqid('foto_', true) . '.jpg';
-                        $dest_path = $uploadDir . $newFileName;
-                        
-                        if (file_put_contents($dest_path, $imageData)) {
-                            // Eliminar foto anterior si existe
-                            if (!empty($paciente['foto']) && file_exists($uploadDir . $paciente['foto'])) {
-                                @unlink($uploadDir . $paciente['foto']);
-                            }
-                            
-                            // Actualizar nombre de archivo en la base de datos
-                            $sql = "UPDATE pacientes SET foto = ? WHERE id = ?";
-                            $stmt = $conn->prepare($sql);
-                            $stmt->execute([$newFileName, $_POST['id']]);
-                        } else {
-                            $error = "Error al guardar la imagen capturada";
-                        }
+                        // Actualizar nombre de archivo en la base de datos
+                        $sql = "UPDATE pacientes SET foto = ? WHERE id = ?";
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute([$newFileName, $_POST['id']]);
+                    } else {
+                        $error = "Error al guardar la imagen capturada";
                     }
                 }
             }
@@ -210,8 +208,8 @@ if ($mostrarEnfermedades) {
 <head>
     <meta charset="UTF-8">
     <title>Editar Paciente - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">    <style>
         .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
         .sidebar a { color: #fff; padding: 10px 15px; display: block; }
@@ -339,13 +337,13 @@ if ($mostrarEnfermedades) {
                                 <div class="row">                            <div class="col-md-3">
                                         <?php if (!empty($paciente['foto'])): ?>
                                             <img src="uploads/pacientes/<?php echo htmlspecialchars($paciente['foto']); ?>" class="foto-paciente mb-2" alt="Foto del paciente">
-                                            <div class="custom-control custom-checkbox mb-2">
-                                                <input type="checkbox" class="custom-control-input" id="mantenerFoto" name="mantenerFoto" value="1" checked>
-                                                <label class="custom-control-label" for="mantenerFoto">Mantener foto actual</label>
+                                            <div class="form-check mb-2">
+                                                <input type="checkbox" class="form-check-input" id="mantenerFoto" name="mantenerFoto" value="1" checked>
+                                                <label class="form-check-label" for="mantenerFoto">Mantener foto actual</label>
                                             </div>
-                                            <div class="custom-control custom-checkbox">
-                                                <input type="checkbox" class="custom-control-input" id="eliminarFoto" name="eliminarFoto" value="1">
-                                                <label class="custom-control-label" for="eliminarFoto">Eliminar foto</label>
+                                            <div class="form-check">
+                                                <input type="checkbox" class="form-check-input" id="eliminarFoto" name="eliminarFoto" value="1">
+                                                <label class="form-check-label" for="eliminarFoto">Eliminar foto</label>
                                             </div>
                                         <?php else: ?>
                                             <div class="alert alert-info">No hay foto</div>
@@ -360,7 +358,7 @@ if ($mostrarEnfermedades) {
                                                         Subir nueva foto
                                                     </label>
                                                 </div>
-                                                <input type="file" name="foto" id="inputFoto" class="form-control-file mt-2" accept="image/*" <?php echo !empty($paciente['foto']) ? 'disabled' : ''; ?>>
+                                                <input type="file" name="foto" id="inputFoto" class="form-control mt-2" accept="image/*" <?php echo !empty($paciente['foto']) ? 'disabled' : ''; ?>>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-check">
@@ -410,106 +408,55 @@ if ($mostrarEnfermedades) {
                 <?php endif; ?>
             </div>
         </div>
-    </div>    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </div>    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/webcam.min.js"></script>
     
-    <!-- Incluir WebcamJS para la captura de fotos -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/webcamjs/1.0.26/webcam.min.js"></script>
     <script>
-        // Scripts para la funcionalidad de captura de fotos
         $(document).ready(function() {
-            // Variables para la cámara
-            let cameraStream = null;
-            let video = null;
-            let canvas = null;
-
-            // Función para iniciar la cámara
-            function startCamera() {
-                // Crear elementos necesarios
-                video = document.createElement('video');
-                video.setAttribute('autoplay', '');
-                video.setAttribute('playsinline', '');
-                document.getElementById('camera').innerHTML = '';
-                document.getElementById('camera').appendChild(video);
-
-                // Mostrar el div de la cámara
-                $('#camera').show();
-                
-                // Solicitar acceso a la cámara
-                navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-                    .then(function(stream) {
-                        cameraStream = stream;
-                        video.srcObject = stream;
-                        $('#btnCapturePhoto').prop('disabled', false);
-                    })
-                    .catch(function(err) {
-                        console.error("Error al acceder a la cámara: ", err);
-                        alert("No se pudo acceder a la cámara. Asegúrate de conceder permiso para usar la cámara.");
-                        $('#fotoCamera').prop('checked', false);
-                        $('#fotoUpload').prop('checked', true);
-                    });
-            }
-
-            // Función para capturar foto
-            function capturePhoto() {
-                if (cameraStream && video) {
-                    // Crear canvas para capturar la imagen
-                    canvas = document.createElement('canvas');
-                    canvas.width = video.videoWidth;
-                    canvas.height = video.videoHeight;
-                    canvas.getContext('2d').drawImage(video, 0, 0);
-                    
-                    // Convertir a base64
-                    const imgData = canvas.toDataURL('image/png');
-                    
-                    // Mostrar la vista previa
-                    $('#fotoPreview').attr('src', imgData).show();
-                    
-                    // Almacenar en campo oculto para enviar al servidor
-                    $('#fotoBase64').val(imgData);
-                    
-                    // Detener la cámara
-                    stopCamera();
-                }
-            }
-
-            // Función para detener la cámara
-            function stopCamera() {
-                if (cameraStream) {
-                    cameraStream.getTracks().forEach(track => track.stop());
-                    cameraStream = null;
-                    $('#camera').hide();
-                    $('#btnCapturePhoto').prop('disabled', true);
-                    $('#btnStartCamera').prop('disabled', false);
-                }
-            }
-
-            // Manejar cambio en la fuente de la foto
+            // Cambiar entre foto upload y cámara
             $('input[name="fotoSource"]').change(function() {
-                if (this.value === 'camera') {
-                    $('#inputFoto').prop('disabled', true);
+                if ($(this).val() === 'camera') {
                     $('#btnStartCamera').prop('disabled', false);
-                    
-                    // Detener cámara previa si estaba activa
-                    stopCamera();
+                    $('#inputFoto').prop('disabled', true);
                 } else {
-                    $('#inputFoto').prop('disabled', false);
                     $('#btnStartCamera').prop('disabled', true);
-                    stopCamera();
+                    $('#btnCapturePhoto').prop('disabled', true);
+                    $('#inputFoto').prop('disabled', false);
+                    // Parar cámara si está activa
+                    Webcam.reset();
+                    $('#camera').hide();
                     $('#fotoPreview').hide();
-                    $('#fotoBase64').val('');
                 }
             });
 
-            // Botón para iniciar cámara
+            // Iniciar cámara
             $('#btnStartCamera').click(function() {
-                startCamera();
-                $(this).prop('disabled', true);
+                Webcam.set({
+                    width: 320,
+                    height: 240,
+                    image_format: 'jpeg',
+                    jpeg_quality: 90
+                });
+                Webcam.attach('#camera');
+                $('#camera').show();
+                $('#btnCapturePhoto').prop('disabled', false);
+                $(this).prop('disabled', true).text('Cámara activa');
             });
 
-            // Botón para capturar foto
-            $('#btnCapturePhoto').click(capturePhoto);
+            // Capturar foto
+            $('#btnCapturePhoto').click(function() {
+                Webcam.snap(function(data_uri) {
+                    $('#fotoPreview').attr('src', data_uri).show();
+                    $('#fotoBase64').val(data_uri);
+                    
+                    // Detener cámara
+                    Webcam.reset();
+                    $('#camera').hide();
+                    $('#btnStartCamera').prop('disabled', false).text('Iniciar cámara');
+                    $('#btnCapturePhoto').prop('disabled', true);
+                });
+            });
 
             // Vista previa de la imagen subida
             $('#inputFoto').change(function() {
@@ -528,7 +475,10 @@ if ($mostrarEnfermedades) {
                     $('#fotoCamera').prop('disabled', true);
                     $('#btnStartCamera').prop('disabled', true);
                     $('#eliminarFoto').prop('checked', false);
-                    stopCamera();
+                    // Parar cámara si está activa
+                    Webcam.reset();
+                    $('#camera').hide();
+                    $('#fotoPreview').hide();
                 } else {
                     $('#inputFoto').prop('disabled', false);
                     $('#fotoUpload').prop('disabled', false);
@@ -547,7 +497,10 @@ if ($mostrarEnfermedades) {
                     $('#fotoUpload').prop('disabled', true);
                     $('#fotoCamera').prop('disabled', true);
                     $('#btnStartCamera').prop('disabled', true);
-                    stopCamera();
+                    // Parar cámara si está activa
+                    Webcam.reset();
+                    $('#camera').hide();
+                    $('#fotoPreview').hide();
                 } else {
                     if (!$('#mantenerFoto').is(':checked')) {
                         $('#inputFoto').prop('disabled', false);

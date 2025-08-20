@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 include 'config.php';
 
 // Verificar conexión
@@ -9,7 +9,7 @@ if (!$conn) {
 // Título de la página
 echo "<html><head>";
 echo "<title>Actualizar Estructura de Datos de Posiciones de Dientes</title>";
-echo "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'>";
+echo "<link rel='stylesheet' href='assets/css/bootstrap.min.css'>";
 echo "<style>
     body { padding: 20px; font-family: Arial, sans-serif; }
     .debug-panel { background: #f8f9fa; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
@@ -265,3 +265,4 @@ if (isset(\$campos_json['posiciones_dientes']) && !empty(\$campos_json['posicion
 echo "</div>"; // Container
 echo "</body></html>";
 ?>
+

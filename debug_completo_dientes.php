@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 ?>
 <!DOCTYPE html>
@@ -6,7 +6,7 @@ require_once 'config.php';
 <head>
     <meta charset="UTF-8">
     <title>Debug Completo: Guardado de Dientes</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
 </head>
 <body>
     <h1>🔍 Debug Completo: Guardado de Dientes Seleccionados</h1>
@@ -315,3 +315,4 @@ require_once 'config.php';
     </style>
 </body>
 </html>
+

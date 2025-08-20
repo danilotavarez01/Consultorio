@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Script para diagnosticar y verificar que las consultas están guardando correctamente los dientes en el JSON
 // y en la columna dedicada
 session_start();
@@ -13,7 +13,7 @@ function mostrarValor($valor) {
 
 echo '<html><head>';
 echo '<title>Test de Dientes Seleccionados en JSON y Columna</title>';
-echo '<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">';
+echo '<link rel="stylesheet" href="assets/css/bootstrap.min.css">';
 echo '<style>
     body { padding: 20px; font-family: Arial, sans-serif; }
     .test-section { margin-bottom: 30px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
@@ -149,3 +149,4 @@ try {
 echo '</div>';
 echo '</body></html>';
 ?>
+

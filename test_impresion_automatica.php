@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once 'config.php';
@@ -32,8 +32,8 @@ if (isset($_GET['test_print'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🖨️ Test de Impresión Automática</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/fontawesome.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-4">
@@ -136,3 +136,4 @@ if (isset($_GET['test_print'])) {
     </script>
 </body>
 </html>
+

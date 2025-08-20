@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once 'config.php';
@@ -147,8 +147,8 @@ if (!isset($mostrar_modal) && empty($facturas)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simulador de Pago Real</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <style>
         /* Modal de pago exitoso - EXACTAMENTE IGUAL QUE EN facturacion.php */
         #modalPagoExitoso .modal-content {
@@ -294,8 +294,8 @@ if (!isset($mostrar_modal) && empty($facturas)) {
 
         <!-- JavaScript para mostrar modal - EXACTAMENTE IGUAL QUE EN facturacion.php -->
         <?php if (isset($mostrar_modal) && isset($_SESSION['show_print_modal']) && $_SESSION['show_print_modal'] === true && isset($_SESSION['ultimo_pago'])): ?>
-        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/bootstrap.bundle.min.js"></script>
         <script>
             // Debug: Verificar que las variables están disponibles
             console.log('=== MODAL DE PAGO EXITOSO (SIMULACIÓN REAL) ===');
@@ -349,9 +349,10 @@ if (!isset($mostrar_modal) && empty($facturas)) {
         unset($_SESSION['show_print_modal']); 
         ?>
         <?php else: ?>
-        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/js/jquery.min.js"></script>
+        <script src="assets/js/bootstrap.bundle.min.js"></script>
         <?php endif; ?>
     </div>
 </body>
 </html>
+

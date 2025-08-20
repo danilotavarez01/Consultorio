@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Script de configuración de permisos para carpetas de sesiones
 // Este script debe ejecutarse con un usuario administrador
 
@@ -79,7 +79,7 @@ file_put_contents(__DIR__ . '/consulta_test_log.txt',
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuración de Permisos</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
 </head>
 <body>
     <div class="container py-5">
@@ -137,3 +137,4 @@ file_put_contents(__DIR__ . '/consulta_test_log.txt',
     </div>
 </body>
 </html>
+

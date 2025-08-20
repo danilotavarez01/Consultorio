@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once 'config.php';
 
@@ -86,8 +86,8 @@ echo "<div id='test-result' class='alert alert-info'>Haga clic en el botón de a
 ?>
 
 <!-- Cargar dependencias necesarias -->
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="assets/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/css/fontawesome.min.css">
 
 <style>
     body { padding: 20px; font-family: Arial, sans-serif; }
@@ -160,8 +160,8 @@ echo "<div id='test-result' class='alert alert-info'>Haga clic en el botón de a
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
 
 <script>
 function testAgregarPago(facturaId, numeroFactura, montoPendiente) {
@@ -214,3 +214,5 @@ $(document).ready(function() {
 </script>
 
 <p><a href="facturacion.php" class="btn btn-primary">← Volver a Facturación</a></p>
+
+

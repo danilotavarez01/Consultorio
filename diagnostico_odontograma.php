@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Diagnóstico del odontograma y comprobación de archivos
 header('Content-Type: text/html; charset=utf-8');
 ?>
@@ -7,7 +7,7 @@ header('Content-Type: text/html; charset=utf-8');
 <head>
     <meta charset="UTF-8">
     <title>Diagnóstico del Odontograma</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body {
             padding: 20px;
@@ -158,7 +158,7 @@ header('Content-Type: text/html; charset=utf-8');
         <div id="odontograma-test-container" class="mt-3" style="border: 1px solid #ddd; padding: 15px; border-radius: 5px;"></div>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     <script>
     $(document).ready(function() {
         $('#btn-test-odontograma').click(function() {
@@ -252,3 +252,4 @@ header('Content-Type: text/html; charset=utf-8');
     </script>
 </body>
 </html>
+

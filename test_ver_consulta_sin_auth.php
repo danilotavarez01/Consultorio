@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Versión simplificada de ver_consulta.php sin autenticación para debug
 require_once "config.php";
 
@@ -30,7 +30,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 <head>
     <meta charset="UTF-8">
     <title>Test Odontograma - Consulta</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body { padding: 20px; }
         .debug-info { background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; font-size: 12px; }
@@ -101,7 +101,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         <p><a href="test_ver_consulta_odontograma.php">📋 Ver lista de consultas con dientes</a></p>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     
     <?php if (!empty($consulta['dientes_seleccionados'])): ?>
     <script>
@@ -234,3 +234,4 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
     <?php endif; ?>
 </body>
 </html>
+

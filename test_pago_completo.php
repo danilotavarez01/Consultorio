@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // test_pago_completo.php - Script para probar el flujo completo de pago
 require_once 'session_config.php';
 session_start();
@@ -12,8 +12,8 @@ if (!isset($_SESSION['loggedin']) || !$_SESSION['loggedin'] || !isset($_SESSION[
 }
 
 echo "<html><head><title>Test Pago Completo</title>";
-echo "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'>";
-echo "<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>";
+echo "<link rel='stylesheet' href='assets/css/bootstrap.min.css'>";
+echo "<link rel='stylesheet' href='assets/css/fontawesome.min.css'>";
 echo "</head><body class='p-4'>";
 
 echo "<div class='container'>";
@@ -133,3 +133,4 @@ echo "</div>";
 echo "</div>";
 echo "</body></html>";
 ?>
+

@@ -12,6 +12,7 @@ if (session_status() === PHP_SESSION_NONE) {
 define('ROLE_ADMIN', 'admin');
 define('ROLE_DOCTOR', 'doctor');
 define('ROLE_RECEPTIONIST', 'recepcionista');
+define('ROLE_SUPPORT', 'soporte');
 
 // Definir permisos por rol
 $PERMISSIONS = [
@@ -63,7 +64,19 @@ $PERMISSIONS = [
         'crear_factura', // Permiso para crear facturas
         'ver_reportes_facturacion' // Permiso para ver reportes de facturación
     ],
-    ROLE_RECEPTIONIST => []  // Base permissions, will be loaded from database
+    ROLE_RECEPTIONIST => [],  // Base permissions, will be loaded from database
+    ROLE_SUPPORT => [
+        'manage_users',
+        'view_patients',
+        'view_appointments',
+        'view_turnos',
+        'view_citas',
+        'view_medical_history',
+        'view_procedures',
+        'ver_facturacion',
+        'ver_reportes_facturacion',
+        'manage_receptionist_permissions'
+    ]
 ];
 
 /**
@@ -89,6 +102,7 @@ function hasPermission($permission) {
         return $stmt->rowCount() > 0;
     }
     
+    // Si es soporte o cualquier otro rol, usar permisos predefinidos
     return in_array($permission, $PERMISSIONS[$userRole] ?? []);
 }
 
@@ -121,4 +135,11 @@ function isDoctor() {
  */
 function isReceptionist() {
     return isset($_SESSION["rol"]) && $_SESSION["rol"] === ROLE_RECEPTIONIST;
+}
+
+/**
+ * Retorna true si el usuario es de soporte
+ */
+function isSupport() {
+    return isset($_SESSION["rol"]) && $_SESSION["rol"] === ROLE_SUPPORT;
 }

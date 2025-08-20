@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Íconos Font Awesome</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .icon-test {
+            font-size: 2rem;
+            margin: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: inline-block;
+            text-align: center;
+            min-width: 80px;
+        }
+        .icon-name {
+            font-size: 0.8rem;
+            margin-top: 8px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">
+            <i class="fas fa-flask"></i> Test de Íconos Font Awesome
+        </h1>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <strong>Prueba de Font Awesome:</strong> Si puedes ver todos los íconos a continuación, Font Awesome está funcionando correctamente con recursos locales.
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <h3>Íconos Solid (fas)</h3>
+                <div class="mb-4">
+                    <div class="icon-test">
+                        <i class="fas fa-user"></i>
+                        <div class="icon-name">fa-user</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="fas fa-lock"></i>
+                        <div class="icon-name">fa-lock</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <div class="icon-name">fa-sign-in-alt</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="fas fa-stethoscope"></i>
+                        <div class="icon-name">fa-stethoscope</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="fas fa-baby"></i>
+                        <div class="icon-name">fa-baby</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="icon-name">fa-calendar-alt</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="fas fa-save"></i>
+                        <div class="icon-name">fa-save</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="icon-name">fa-check-circle</div>
+                    </div>
+                </div>
+
+                <h3>Íconos Regular (far)</h3>
+                <div class="mb-4">
+                    <div class="icon-test">
+                        <i class="far fa-user"></i>
+                        <div class="icon-name">far fa-user</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="far fa-calendar"></i>
+                        <div class="icon-name">far fa-calendar</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="far fa-clock"></i>
+                        <div class="icon-name">far fa-clock</div>
+                    </div>
+                    <div class="icon-test">
+                        <i class="far fa-heart"></i>
+                        <div class="icon-name">far fa-heart</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <h5><i class="fas fa-check"></i> Test de Formulario (como en login.php)</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group">
+                        <label><i class="fas fa-user mr-2"></i>Usuario</label>
+                        <input type="text" class="form-control" placeholder="Ingrese su usuario">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-lock mr-2"></i>Contraseña</label>
+                        <input type="password" class="form-control" placeholder="Ingrese su contraseña">
+                    </div>
+                    <button type="button" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Ingresar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+</body>
+</html>

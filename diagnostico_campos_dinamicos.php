@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Herramienta de diagnóstico para campos dinámicos
 // Este script ayuda a diagnosticar problemas con los endpoints de campos dinámicos
 // ACTUALIZADO: 2025-06-20 - Versión 2.0 con detección y reparación automática
@@ -180,7 +180,7 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Diagnóstico de Campos Dinámicos</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         .success { color: green; }
         .error { color: red; }
@@ -272,8 +272,9 @@ try {
         </div>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once 'config.php';
@@ -15,7 +15,7 @@ echo "<head>";
 echo "<meta charset='UTF-8'>";
 echo "<meta name='viewport' content='width=device-width, initial-scale=1.0'>";
 echo "<title>✅ Test Final - Flujo de Impresión Completo</title>";
-echo "<link href='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css' rel='stylesheet'>";
+echo "<link href='assets/css/bootstrap.min.css' rel='stylesheet'>";
 echo "</head>";
 echo "<body>";
 
@@ -188,3 +188,4 @@ echo "</script>";
 echo "</body>";
 echo "</html>";
 ?>
+

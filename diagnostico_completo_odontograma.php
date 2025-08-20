@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Diagnóstico completo del problema del odontograma en ver_consulta.php
 require_once "config.php";
 
@@ -145,7 +145,7 @@ echo "</ol>";
 echo "</div>";
 ?>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="assets/js/jquery.min.js"></script>
 <script>
 function testAjax() {
     $('#ajax-result').html('🔄 Probando AJAX...');
@@ -175,3 +175,4 @@ function testAjax() {
     });
 }
 </script>
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Script de prueba para verificar que odontograma_svg.php funcione correctamente
 
 echo "<h2>🧪 Prueba Directa del Odontograma SVG</h2>";
@@ -92,7 +92,7 @@ try {
 }
 ?>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="assets/js/jquery.min.js"></script>
 <script>
 function testAjaxLoad() {
     $('#ajax-result').html('<div style="color: blue;">🔄 Probando carga AJAX...</div>');
@@ -138,3 +138,4 @@ h3 { color: #333; }
 .btn { padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
 .btn:hover { background: #0056b3; }
 </style>
+

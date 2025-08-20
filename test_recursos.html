@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Recursos Locales</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-success">
+                    <h4><i class="fas fa-check-circle"></i> Test de Recursos Locales</h4>
+                    <p>Si puedes ver este mensaje con estilos de Bootstrap y el ícono de Font Awesome, entonces los recursos locales están funcionando correctamente.</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="fas fa-cog"></i> Pruebas de Componentes</h5>
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-success mr-2">
+                            <i class="fas fa-thumbs-up"></i> Bootstrap + FontAwesome OK
+                        </button>
+                        
+                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#testModal">
+                            <i class="fas fa-window-maximize"></i> Test Modal (jQuery)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de prueba -->
+    <div class="modal fade" id="testModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-check"></i> Modal de Prueba
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Si este modal se abre correctamente, jQuery y Bootstrap JS están funcionando.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            console.log('jQuery cargado correctamente');
+            
+            // Verificar que Bootstrap JS funciona
+            $('#testModal').on('shown.bs.modal', function () {
+                console.log('Bootstrap Modal funcionando correctamente');
+            });
+        });
+    </script>
+</body>
+</html>

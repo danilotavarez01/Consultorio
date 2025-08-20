@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Versión de ver_consulta.php sin autenticación para debug
 require_once "config.php";
 
@@ -30,8 +30,8 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
 <head>
     <meta charset="UTF-8">
     <title>Ver Consulta (Sin Autenticación) - Debug</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <style>
         .content { padding: 20px; }
         .consultation-detail { margin-bottom: 20px; }
@@ -145,7 +145,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     
     <?php if (!empty($consulta['dientes_seleccionados'])): ?>
     <script>
@@ -328,3 +328,4 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
     </div>
 </body>
 </html>
+

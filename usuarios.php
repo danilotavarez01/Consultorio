@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once "permissions.php";
@@ -125,8 +125,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Usuarios - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <style>
         .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
@@ -167,7 +167,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </thead>
                         <tbody>
                             <?php
-                            $sql = "SELECT * FROM usuarios ORDER BY id";
+                            // Consulta optimizada con índices
+                            $sql = "SELECT id, username, nombre, rol, active FROM usuarios ORDER BY id";
                             $stmt = $conn->query($sql);
                             while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                                 echo "<tr>";
@@ -247,6 +248,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <select name="rol" id="rol" class="form-control" required>
                                 <option value="doctor">Doctor</option>
                                 <option value="recepcionista">Recepcionista</option>
+                                <option value="soporte">Soporte</option>
                                 <?php if(isAdmin()): ?>
                                 <option value="admin">Administrador</option>
                                 <?php endif; ?>
@@ -309,6 +311,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <select name="rol" id="edit_rol" class="form-control" required>
                                 <option value="doctor">Doctor</option>
                                 <option value="recepcionista">Recepcionista</option>
+                                <option value="soporte">Soporte</option>
                                 <?php if(isAdmin()): ?>
                                 <option value="admin">Administrador</option>
                                 <?php endif; ?>
@@ -339,9 +342,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
     <script src="js/theme-manager.js"></script>
     
     <script>
@@ -362,7 +365,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Mostrar/ocultar selector de especialidad según el rol
     $('#rol, #edit_rol').change(function() {
         var rol = $(this).val();
-        var especialidadContainer = $(this).closest('.modal').find('.especialidad_container');
+        var especialidadContainer = $(this).closest('.modal').find('.form-group').has('[name="especialidad_id"]');
         
         if (rol == 'doctor') {
             especialidadContainer.show();
@@ -382,11 +385,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
-        // Manejar cambio de rol
+        // Función para el modal de editar
+        function toggleEditEspecialidad() {
+            if ($('#edit_rol').val() === 'doctor') {
+                $('#edit_especialidad_container').show();
+            } else {
+                $('#edit_especialidad_container').hide();
+            }
+        }
+
+        // Manejar cambio de rol para nuevo usuario
         $('#rol').on('change', toggleEspecialidad);
+        
+        // Manejar cambio de rol para editar usuario
+        $('#edit_rol').on('change', toggleEditEspecialidad);
 
         // Aplicar al cargar la página
         toggleEspecialidad();
+        toggleEditEspecialidad();
 
         // Al editar un usuario
         $('.btn-edit').on('click', function() {
@@ -425,3 +441,4 @@ $permissions = [
     PERM_MANAGE_DOCTORES => 'Gestionar doctores',
     PERM_MANAGE_ADMIN => 'Gestionar admin',
 ];
+

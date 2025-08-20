@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once 'config.php';
 require_once 'permissions.php';
@@ -170,7 +170,7 @@ if (isset($_GET['debug'])) {
 
 ?>
 
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/css/bootstrap.min.css">
 <style>
     body { padding: 20px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; }
     .table { background: white; }
@@ -184,3 +184,4 @@ if (isset($_GET['debug'])) {
         <a href="verificar_sesion_simple.php" class="btn btn-info">🔍 Verificar Sesión</a>
     </p>
 </div>
+

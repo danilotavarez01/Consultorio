@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Archivo de prueba simple para diagnosticar problemas con el odontograma
 header('Content-Type: text/html; charset=utf-8');
 require_once "config.php";
@@ -12,7 +12,7 @@ $especialidad = ['nombre' => 'Odontología'];
 <head>
     <meta charset="UTF-8">
     <title>Prueba Simple Odontograma</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body { padding: 20px; }
         .test-container { max-width: 1000px; margin: 0 auto; border: 1px solid #ddd; padding: 20px; border-radius: 8px; }
@@ -45,7 +45,7 @@ $especialidad = ['nombre' => 'Odontología'];
         </div>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     <script>
         // Establecer una variable global para indicar que sí queremos mostrar el odontograma
         window.MOSTRAR_ODONTOGRAMA = true;
@@ -76,3 +76,4 @@ $especialidad = ['nombre' => 'Odontología'];
     </script>
 </body>
 </html>
+

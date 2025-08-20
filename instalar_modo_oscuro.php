@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Script de instalación del modo oscuro en todo el sistema
  * Aplica automáticamente el modo oscuro a las páginas principales
@@ -47,8 +47,8 @@ foreach ($pages_to_update as $page) {
     // 1. Añadir CSS del modo oscuro si no existe
     if (strpos($content, 'css/dark-mode.css') === false) {
         $content = str_replace(
-            '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">',
-            '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+            '<link rel="stylesheet" href="assets/css/fontawesome.min.css">',
+            '<link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">',
             $content
         );
@@ -98,8 +98,8 @@ foreach ($pages_to_update as $page) {
 <head>
     <meta charset="UTF-8">
     <title>Instalación Modo Oscuro - Consultorio</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
 </head>
 <body>
@@ -183,9 +183,10 @@ foreach ($pages_to_update as $page) {
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/bootstrap.bundle.min.js"></script>
 <script src="js/theme-manager.js"></script>
 
 </body>
 </html>
+

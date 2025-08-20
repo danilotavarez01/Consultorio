@@ -24,8 +24,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'create_factura') {
         $paciente_id = intval($_POST['paciente_id']);
         $medico_id = intval($_POST['medico_id'] ?? $_SESSION['id']);
-        $medico_nombre = trim($_POST['medico_nombre'] ?? '');
         $turno_id = intval($_POST['turno_id'] ?? 0);
+        $medico_nombre = '';
+        // Si viene turno_id, obtener el nombre del médico desde el turno
+        if ($turno_id > 0) {
+            $stmt_medico = $conn->prepare("SELECT medico_nombre FROM turnos WHERE id = ? LIMIT 1");
+            $stmt_medico->execute([$turno_id]);
+            $medico_nombre_turno = $stmt_medico->fetchColumn();
+            if ($medico_nombre_turno) {
+                $medico_nombre = $medico_nombre_turno;
+            }
+        }
+        // Si no se obtuvo el nombre del médico desde el turno, usar el nombre del usuario actual
+        if (empty($medico_nombre)) {
+            $stmt_usuario = $conn->prepare("SELECT nombre FROM usuarios WHERE id = ? LIMIT 1");
+            $stmt_usuario->execute([$medico_id]);
+            $medico_nombre = $stmt_usuario->fetchColumn();
+        }
         $fecha_factura = $_POST['fecha_factura'] ?? date('Y-m-d');
         $fecha_vencimiento = $_POST['fecha_vencimiento'] ?? date('Y-m-d', strtotime('+30 days'));
         $observaciones = trim($_POST['observaciones'] ?? '');
@@ -257,29 +272,63 @@ if (!empty($fecha_hasta)) {
 $where_clause = !empty($where_conditions) ? "WHERE " . implode(" AND ", $where_conditions) : "";
 
 try {
+    // Consulta optimizada con LIMIT para paginación y mejor rendimiento
+    $limit = 50; // Limitar a 50 facturas por página
+    $offset = isset($_GET['page']) ? (intval($_GET['page']) - 1) * $limit : 0;
+    
     $stmt = $conn->prepare("
-        SELECT f.*, 
+        SELECT f.id, f.numero_factura, f.fecha_factura, f.fecha_vencimiento, 
+               f.subtotal, f.descuento, f.total, f.estado, f.observaciones,
                CONCAT(p.nombre, ' ', p.apellido) as paciente_nombre,
                u.nombre as medico_nombre,
-               COALESCE(SUM(pg.monto), 0) as total_pagado
+               COALESCE(pg.total_pagado, 0) as total_pagado
         FROM facturas f
         LEFT JOIN pacientes p ON f.paciente_id = p.id
         LEFT JOIN usuarios u ON f.medico_id = u.id  
-        LEFT JOIN pagos pg ON f.id = pg.factura_id
+        LEFT JOIN (
+            SELECT factura_id, SUM(monto) as total_pagado 
+            FROM pagos 
+            GROUP BY factura_id
+        ) pg ON f.id = pg.factura_id
         $where_clause
-        GROUP BY f.id
         ORDER BY f.fecha_factura DESC, f.id DESC
+        LIMIT $limit OFFSET $offset
     ");
     $stmt->execute($params);
     $facturas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Obtener total de registros para paginación
+    $count_stmt = $conn->prepare("SELECT COUNT(*) FROM facturas f $where_clause");
+    $count_stmt->execute($params);
+    $total_facturas = $count_stmt->fetchColumn();
+    $total_pages = ceil($total_facturas / $limit);
+    $current_page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+    
 } catch (PDOException $e) {
     $error = "Error al obtener facturas: " . $e->getMessage();
     $facturas = [];
+    $total_pages = 1;
+    $current_page = 1;
 }
 
-// Obtener pacientes para el selector
+// Obtener pacientes para el selector con información del doctor de la cita más reciente
 try {
-    $stmt = $conn->query("SELECT id, nombre, apellido, seguro_nombre, seguro_monto FROM pacientes ORDER BY nombre, apellido");
+    $stmt = $conn->query("
+        SELECT p.id, p.nombre, p.apellido, p.seguro_medico, 
+               u.nombre as doctor_ultima_cita, u.id as doctor_id,
+               c.fecha as fecha_ultima_cita
+        FROM pacientes p
+        LEFT JOIN citas c ON p.id = c.paciente_id
+        LEFT JOIN usuarios u ON c.doctor_id = u.id
+        LEFT JOIN (
+            SELECT paciente_id, MAX(CONCAT(fecha, ' ', hora)) as max_fecha_hora
+            FROM citas
+            GROUP BY paciente_id
+        ) ultima_cita ON p.id = ultima_cita.paciente_id 
+                       AND CONCAT(c.fecha, ' ', c.hora) = ultima_cita.max_fecha_hora
+        WHERE c.id IS NULL OR CONCAT(c.fecha, ' ', c.hora) = ultima_cita.max_fecha_hora
+        ORDER BY p.nombre, p.apellido
+    ");
     $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     $pacientes = [];
@@ -639,7 +688,7 @@ try {
                                                 </td>
                                                 <td><?= date('d/m/Y', strtotime($factura['fecha_factura'])) ?></td>
                                                 <td><?= htmlspecialchars($factura['paciente_nombre']) ?></td>
-                                                <td><?= htmlspecialchars($factura['medico_nombre']) ?></td>
+                                                <td><?= htmlspecialchars($factura['medico_nombre'] ?: $factura['medico_nombre_turno']) ?></td>
                                                 <td class="precio-cell">
                                                     <strong>$<?= number_format($factura['total'], 2) ?></strong>
                                                 </td>
@@ -756,11 +805,37 @@ try {
                                     <select class="form-control" id="paciente_id" name="paciente_id" required>
                                         <option value="">Seleccionar paciente...</option>
                                         <?php foreach ($pacientes as $paciente): ?>
-                                            <option value="<?= $paciente['id'] ?>" data-seguro="<?= isset($paciente['seguro_nombre']) ? htmlspecialchars($paciente['seguro_nombre']) : '' ?>" data-seguro-monto="<?= isset($paciente['seguro_monto']) ? htmlspecialchars($paciente['seguro_monto']) : '' ?>">
+                                            <option value="<?= $paciente['id'] ?>" 
+                                                    data-seguro="<?= isset($paciente['seguro_medico']) ? htmlspecialchars($paciente['seguro_medico']) : '' ?>" 
+                                                    data-doctor="<?= isset($paciente['doctor_ultima_cita']) ? htmlspecialchars($paciente['doctor_ultima_cita']) : '' ?>"
+                                                    data-doctor-id="<?= isset($paciente['doctor_id']) ? $paciente['doctor_id'] : '' ?>"
+                                                    data-fecha-cita="<?= isset($paciente['fecha_ultima_cita']) ? $paciente['fecha_ultima_cita'] : '' ?>">
                                                 <?= htmlspecialchars($paciente['nombre'] . ' ' . $paciente['apellido']) ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+                                </div>
+                                
+                                <!-- Campo del Doctor de la Última Cita -->
+                                <div class="form-group">
+                                    <div class="card mb-3 shadow-sm border-info" style="background: linear-gradient(90deg,#e7f3ff 60%,#d1ecf1 100%);">
+                                        <div class="card-body py-2 px-3">
+                                            <div class="row align-items-center">
+                                                <div class="col-md-8">
+                                                    <label for="doctor_ultima_cita" class="font-weight-bold text-info mb-1">
+                                                        <i class="fas fa-user-md mr-1"></i>Doctor de Última Cita
+                                                    </label>
+                                                    <input type="text" class="form-control border-info bg-white" id="doctor_ultima_cita" name="doctor_ultima_cita" readonly placeholder="No hay citas registradas">
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label for="fecha_ultima_cita" class="font-weight-bold text-info mb-1">
+                                                        <i class="fas fa-calendar mr-1"></i>Fecha
+                                                    </label>
+                                                    <input type="text" class="form-control border-info bg-white" id="fecha_ultima_cita" name="fecha_ultima_cita" readonly placeholder="--">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -995,15 +1070,42 @@ try {
                 });
             }
 
-            // Evento para traer datos del seguro al seleccionar paciente
+            // Evento para traer datos del seguro y doctor al seleccionar paciente
             const pacienteSelect = document.getElementById('paciente_id');
             if (pacienteSelect) {
                 pacienteSelect.addEventListener('change', function() {
                     const selected = pacienteSelect.options[pacienteSelect.selectedIndex];
+                    
+                    // Datos del seguro
                     const seguroNombre = selected.getAttribute('data-seguro') || '';
-                    const seguroMonto = selected.getAttribute('data-seguro-monto') || '';
                     document.getElementById('nuevo_seguro_nombre').value = seguroNombre;
-                    document.getElementById('nuevo_seguro_monto').value = seguroMonto;
+                    document.getElementById('nuevo_seguro_monto').value = ''; // No hay campo de monto
+                    
+                    // Datos del doctor de la última cita
+                    const doctorNombre = selected.getAttribute('data-doctor') || '';
+                    const fechaCita = selected.getAttribute('data-fecha-cita') || '';
+                    
+                    const doctorField = document.getElementById('doctor_ultima_cita');
+                    const fechaField = document.getElementById('fecha_ultima_cita');
+                    
+                    if (doctorField) {
+                        doctorField.value = doctorNombre || 'No hay citas registradas';
+                    }
+                    
+                    if (fechaField) {
+                        if (fechaCita) {
+                            // Formatear fecha a DD/MM/YYYY
+                            const fecha = new Date(fechaCita);
+                            const fechaFormateada = fecha.toLocaleDateString('es-DO', {
+                                day: '2-digit',
+                                month: '2-digit', 
+                                year: 'numeric'
+                            });
+                            fechaField.value = fechaFormateada;
+                        } else {
+                            fechaField.value = '--';
+                        }
+                    }
                 });
             }
         });

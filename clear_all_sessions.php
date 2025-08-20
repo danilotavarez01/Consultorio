@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // clear_all_sessions.php - Limpiar todas las sesiones para resolver problemas de auto-login
 require_once 'session_config.php';
 session_start();
@@ -44,7 +44,7 @@ if (is_dir($custom_session_path)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sesiones Limpiadas</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body { background: #f8f9fa; padding: 50px 0; }
         .container { max-width: 600px; }
@@ -114,3 +114,4 @@ if (is_dir($custom_session_path)) {
     </script>
 </body>
 </html>
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once 'config.php';
@@ -34,8 +34,8 @@ if (isset($_GET['simular_pago']) && $_GET['simular_pago'] == '1') {
 }
 
 echo "<html><head><title>Diagnóstico Modal de Pago</title>";
-echo "<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'>";
-echo "<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>";
+echo "<link rel='stylesheet' href='assets/css/bootstrap.min.css'>";
+echo "<link rel='stylesheet' href='assets/css/fontawesome.min.css'>";
 echo "</head><body class='p-4'>";
 
 echo "<div class='container'>";
@@ -191,3 +191,4 @@ echo "</div>";
 
 echo "</body></html>";
 ?>
+

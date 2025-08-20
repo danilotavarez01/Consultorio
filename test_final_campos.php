@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Test Final - Campos Dinámicos</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
         .success { background-color: #d4edda; border-color: #c3e6cb; }
@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     <script>
         function log(mensaje) {
             const timestamp = new Date().toLocaleTimeString();
@@ -280,3 +280,4 @@
     </script>
 </body>
 </html>
+

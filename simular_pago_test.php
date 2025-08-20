@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once 'config.php';
@@ -14,7 +14,7 @@ echo "<html lang='es'>";
 echo "<head>";
 echo "<meta charset='UTF-8'>";
 echo "<title>Simular Pago y Test Recibo</title>";
-echo "<link href='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css' rel='stylesheet'>";
+echo "<link href='assets/css/bootstrap.min.css' rel='stylesheet'>";
 echo "</head>";
 echo "<body>";
 
@@ -180,3 +180,4 @@ echo "</script>";
 echo "</body>";
 echo "</html>";
 ?>
+

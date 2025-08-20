@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Versión simplificada para probar el odontograma en ver_consulta.php
 require_once "config.php";
 
@@ -17,7 +17,7 @@ $consulta_simulada = [
 <head>
     <meta charset="UTF-8">
     <title>Prueba Odontograma en Consulta</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body { padding: 20px; }
         #debug-info { background: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; margin: 20px 0; }
@@ -66,7 +66,7 @@ $consulta_simulada = [
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     
     <script>
         $(document).ready(function() {
@@ -209,3 +209,4 @@ $consulta_simulada = [
     </script>
 </body>
 </html>
+

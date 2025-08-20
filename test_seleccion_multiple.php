@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Archivo de prueba para la selección múltiple de dientes en el odontograma
 // Creado: <?php echo date('Y-m-d H:i:s'); ?>
 ?>
@@ -8,8 +8,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test de Selección Múltiple en Odontograma</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <script src="assets/js/jquery.min.js"></script>
     <style>
         .test-section {
             padding: 15px;
@@ -165,3 +165,4 @@
     </script>
 </body>
 </html>
+

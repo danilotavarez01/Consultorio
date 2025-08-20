@@ -205,8 +205,8 @@ try {
 <head>
     <meta charset="UTF-8">
     <title>Nueva Consulta - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <style>
         .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
@@ -264,6 +264,12 @@ try {
                                 <div class="form-group col-md-6">
                                     <label>Fecha de Consulta</label>
                                     <input type="date" name="fecha" class="form-control" value="<?php echo date('Y-m-d'); ?>" required>
+                                    <!-- Letrero para mostrar fecha de parto -->
+                                    <div id="letrero-fecha-parto" class="alert alert-success mt-2" style="display: none;">
+                                        <i class="fas fa-baby"></i> <strong>Fecha probable de parto:</strong> 
+                                        <span id="fecha-parto-calculada"></span>
+                                        <br><small class="text-muted">Calculada con Fórmula de Naegele (FUR + 280 días)</small>
+                                    </div>
                                 </div>
                                 <!-- <div class="form-group col-md-6">
                                     <label>Campo de prueba "observa"</label>
@@ -285,9 +291,9 @@ try {
                 <?php endif; ?>
             </div>
         </div>
-    </div>    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </div>    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
     <script src="js/theme-manager.js"></script>
     <!-- Usamos el nuevo script para evitar errores XML -->
     <script src="js/campos_dinamicos_nuevo.js"></script>    <!-- Incluir el script forzado del odontograma (solo se muestra si es odontología) -->    <?php include 'forzar_odontograma_corregido.php'; ?>
@@ -595,6 +601,130 @@ try {
                 }, 300);
             });
             
+            // Función para calcular fecha de parto usando Fórmula de Naegele
+            function calcularFechaParto(fechaUltimaRegla) {
+                if (!fechaUltimaRegla) return null;
+                
+                try {
+                    const fecha = new Date(fechaUltimaRegla);
+                    if (isNaN(fecha.getTime())) return null;
+                    
+                    // Fórmula de Naegele: sumar 280 días (40 semanas) a la FUR
+                    const fechaParto = new Date(fecha);
+                    fechaParto.setDate(fechaParto.getDate() + 280);
+                    
+                    return fechaParto.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+                } catch (e) {
+                    console.error('Error calculando fecha de parto:', e);
+                    return null;
+                }
+            }
+            
+            // Función para actualizar fecha de parto automáticamente
+            function actualizarFechaParto() {
+                const embarazadaField = $('input[name="campo_embarazada"], select[name="campo_embarazada"]');
+                const fechaUltimaReglaField = $('input[name="campo_fecha_ultima_regla"]');
+                const fechaPartoField = $('input[name="campo_fecha_parto"]');
+                
+                console.log('Verificando campos de ginecología...');
+                console.log('Campo embarazada encontrado:', embarazadaField.length > 0);
+                console.log('Campo fecha última regla encontrado:', fechaUltimaReglaField.length > 0);
+                
+                // Verificar si los campos principales existen
+                if (embarazadaField.length && fechaUltimaReglaField.length) {
+                    const embarazada = embarazadaField.val();
+                    const fechaUltimaRegla = fechaUltimaReglaField.val();
+                    
+                    console.log('Valor embarazada:', embarazada);
+                    console.log('Valor fecha última regla:', fechaUltimaRegla);
+                    
+                    // Si está embarazada (true) y hay fecha de última regla
+                    if ((embarazada === 'Si' || embarazada === '1' || embarazada === 'true' || embarazada === true) && fechaUltimaRegla) {
+                        const fechaParto = calcularFechaParto(fechaUltimaRegla);
+                        console.log('Fecha de parto calculada:', fechaParto);
+                        
+                        if (fechaParto) {
+                            // Actualizar el campo de fecha de parto si existe
+                            if (fechaPartoField.length) {
+                                fechaPartoField.val(fechaParto);
+                                
+                                // Mostrar mensaje informativo en el campo
+                                let mensajeInfo = $('#mensaje-fecha-parto');
+                                if (mensajeInfo.length === 0) {
+                                    mensajeInfo = $('<div id="mensaje-fecha-parto" class="alert alert-info mt-2"></div>');
+                                    fechaPartoField.closest('.form-group').append(mensajeInfo);
+                                }
+                                mensajeInfo.html('<i class="fas fa-info-circle"></i> Fecha calculada automáticamente usando la Fórmula de Naegele (FUR + 280 días)');
+                            }
+                            
+                            // Mostrar letrero al lado de la fecha de consulta
+                            const fechaPartoFormateada = new Date(fechaParto).toLocaleDateString('es-ES', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+                            
+                            $('#fecha-parto-calculada').text(fechaPartoFormateada);
+                            $('#letrero-fecha-parto').slideDown();
+                            
+                            // Mostrar alerta con la fecha de parto
+                            const alertaMensaje = `🍼 FECHA PROBABLE DE PARTO: ${fechaPartoFormateada.toUpperCase()}`;
+                            alert(alertaMensaje);
+                            
+                            console.log('✅ Fecha de parto mostrada:', fechaPartoFormateada);
+                        }
+                    } else {
+                        // Limpiar fecha de parto si no está embarazada o no hay fecha
+                        if (fechaPartoField.length) {
+                            fechaPartoField.val('');
+                        }
+                        $('#mensaje-fecha-parto').remove();
+                        $('#letrero-fecha-parto').slideUp();
+                        console.log('❌ Condiciones no cumplidas - ocultando fecha de parto');
+                    }
+                } else {
+                    // Si no existen los campos, ocultar el letrero
+                    $('#letrero-fecha-parto').slideUp();
+                    console.log('⚠️ Campos de ginecología no encontrados');
+                }
+            }
+            
+            // Escuchar cambios en los campos relacionados con ginecología
+            $(document).on('change', 'input[name="campo_embarazada"], select[name="campo_embarazada"]', function() {
+                console.log('🔄 Campo embarazada cambió a:', $(this).val());
+                setTimeout(() => actualizarFechaParto(), 100);
+            });
+            
+            $(document).on('change blur', 'input[name="campo_fecha_ultima_regla"]', function() {
+                const fechaIngresada = $(this).val();
+                console.log('📅 Fecha última regla cambió a:', fechaIngresada);
+                
+                // Solo procesar si hay una fecha válida
+                if (fechaIngresada) {
+                    setTimeout(() => actualizarFechaParto(), 100);
+                }
+            });
+            
+            // Observar cuando se cargan campos dinámicos para aplicar la funcionalidad
+            const observer2 = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        // Verificar si se agregaron campos de ginecología
+                        setTimeout(() => {
+                            actualizarFechaParto();
+                        }, 500);
+                    }
+                });
+            });
+            
+            if (document.getElementById('campos_dinamicos')) {
+                observer2.observe(document.getElementById('campos_dinamicos'), { 
+                    childList: true, 
+                    subtree: true 
+                });
+            }
+            
             // Verificación periódica inicial para asegurar que el sistema funcione
             let verificacionesRealizadas = 0;
             const verificacionInterval = setInterval(() => {
@@ -609,6 +739,9 @@ try {
                     console.log('Tiempo límite alcanzado para detectar odontograma');
                     clearInterval(verificacionInterval);
                 }
+                
+                // También verificar campos de ginecología en cada iteración
+                actualizarFechaParto();
             }, 500);
         });
     </script>

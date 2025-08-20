@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once 'config.php';
 require_once 'permissions.php';
@@ -81,7 +81,7 @@ if ($condicion_final) {
 
 ?>
 
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+<link rel="stylesheet" href="assets/css/bootstrap.min.css">
 <style>
     body { padding: 20px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; }
     pre { background: #f8f9fa; padding: 10px; border-radius: 5px; overflow-x: auto; }
@@ -90,3 +90,4 @@ if ($condicion_final) {
 </style>
 
 <p><a href="facturacion.php">← Volver a Facturación</a></p>
+

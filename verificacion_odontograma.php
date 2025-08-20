@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Verificación completa del odontograma en nueva consulta
 header('Content-Type: text/html; charset=utf-8');
 require_once "config.php";
@@ -51,7 +51,7 @@ $resultados = verificarEspecialidad($conn);
 <head>
     <meta charset="UTF-8">
     <title>Verificación del Odontograma</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body { padding: 20px; }
         .card { margin-bottom: 20px; }
@@ -151,7 +151,7 @@ $resultados = verificarEspecialidad($conn);
         </div>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
             console.log("Página de verificación cargada");
@@ -170,3 +170,4 @@ $resultados = verificarEspecialidad($conn);
     </script>
 </body>
 </html>
+

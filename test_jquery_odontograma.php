@@ -1,11 +1,11 @@
-<?php
+﻿<?php
 // Verificar la carga correcta de jQuery
 ?>
 <!DOCTYPE html>
 <html>
 <head>
     <title>Test jQuery</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
 </head>
 <body>
     <h2>Test de jQuery y odontograma</h2>
@@ -45,3 +45,4 @@
     </script>
 </body>
 </html>
+

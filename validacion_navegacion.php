@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Script de Validación de Navegación
  * Valida que todas las opciones del menú funcionen correctamente sin desloguear al usuario
@@ -69,8 +69,8 @@ foreach ($paginas_menu as $archivo => $nombre) {
 <head>
     <meta charset="UTF-8">
     <title>Validación de Navegación - Consultorio</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <style>
         .status-ok { color: #28a745; }
@@ -262,3 +262,4 @@ function testNavigation() {
 <script src="js/theme-manager.js"></script>
 </body>
 </html>
+

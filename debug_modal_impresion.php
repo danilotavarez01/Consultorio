@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Debug del modal de impresión - No requiere autenticación para pruebas
 session_start();
 
@@ -19,8 +19,8 @@ $_SESSION['show_print_modal'] = true;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Debug - Modal de Impresión</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/fontawesome.min.css" rel="stylesheet">
     <style>
         body { padding: 20px; background-color: #f8f9fa; }
         .debug-card { margin-bottom: 20px; }
@@ -189,8 +189,8 @@ $_SESSION['show_print_modal'] = true;
         <?php endif; ?>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
     
     <script>
         function simularModal() {
@@ -290,3 +290,5 @@ $_SESSION['show_print_modal'] = true;
     ?>
 </body>
 </html>
+
+

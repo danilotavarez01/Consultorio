@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once "config.php";
 
@@ -35,7 +35,7 @@ echo "<!DOCTYPE html>
 <head>
     <meta charset='UTF-8'>
     <title>Verificador de Guardado de Dientes</title>
-    <link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css'>
+    <link rel='stylesheet' href='assets/css/bootstrap.min.css'>
     <style>
         body { padding: 20px; font-family: Arial, sans-serif; }
         .good { background-color: #d4edda; border-color: #c3e6cb; }
@@ -331,3 +331,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </body>
 </html>";
 ?>
+

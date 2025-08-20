@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Modo Oscuro</title>
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        .test-card {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 28px;
+            position: relative;
+            width: 52px;
+            margin: 20px 0;
+        }
+        .theme-switch input {
+            display: none;
+        }
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 28px;
+        }
+        .slider:before {
+            background-color: #fff;
+            bottom: 2px;
+            content: "";
+            height: 24px;
+            left: 2px;
+            position: absolute;
+            transition: .4s;
+            width: 24px;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        input:checked + .slider {
+            background-color: #007bff;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+    </style>
+</head>
+<body>
+    <h1>Test del Modo Oscuro</h1>
+    
+    <div class="test-card">
+        <h3>Card de Prueba</h3>
+        <p>Este es un texto de prueba para verificar el modo oscuro. El color de fondo y del texto debería cambiar cuando actives el modo oscuro.</p>
+        
+        <label class="theme-switch" for="theme-checkbox">
+            <input type="checkbox" id="theme-checkbox" onchange="toggleTheme()">
+            <div class="slider">
+                <i class="fas fa-sun" style="position: absolute; left: 8px; top: 8px; font-size: 12px; color: #ffc107;"></i>
+                <i class="fas fa-moon" style="position: absolute; right: 8px; top: 8px; font-size: 12px; color: #6c757d;"></i>
+            </div>
+        </label>
+        <span style="margin-left: 10px;">Toggle Modo Oscuro</span>
+    </div>
+
+    <div class="test-card">
+        <h4>Estado Actual:</h4>
+        <p id="status">Cargando...</p>
+        <button onclick="manualToggle()" class="btn btn-primary">Toggle Manual</button>
+        <button onclick="checkTheme()" class="btn btn-secondary">Verificar Tema</button>
+    </div>
+
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Función simple para toggle
+        function toggleTheme() {
+            console.log('toggleTheme llamado');
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            document.body.classList.toggle('dark-theme', newTheme === 'dark');
+            
+            localStorage.setItem('consultorio-theme', newTheme);
+            
+            const checkbox = document.getElementById('theme-checkbox');
+            if (checkbox) checkbox.checked = newTheme === 'dark';
+            
+            updateStatus();
+            console.log('Tema cambiado a:', newTheme);
+        }
+        
+        function manualToggle() {
+            toggleTheme();
+        }
+        
+        function checkTheme() {
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
+            const saved = localStorage.getItem('consultorio-theme');
+            console.log('Tema actual:', theme);
+            console.log('Tema guardado:', saved);
+            alert('Tema actual: ' + theme + ', Guardado: ' + saved);
+        }
+        
+        function updateStatus() {
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
+            const status = document.getElementById('status');
+            if (status) {
+                status.textContent = 'Tema actual: ' + theme.toUpperCase();
+            }
+        }
+        
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedTheme = localStorage.getItem('consultorio-theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.body.classList.toggle('dark-theme', savedTheme === 'dark');
+            
+            const checkbox = document.getElementById('theme-checkbox');
+            if (checkbox) checkbox.checked = savedTheme === 'dark';
+            
+            updateStatus();
+            console.log('Test inicializado con tema:', savedTheme);
+        });
+    </script>
+</body>
+</html>

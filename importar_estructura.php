@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 // Activar reportes de errores para debug
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -29,7 +29,7 @@ echo "<!DOCTYPE html>
 <html>
 <head>
     <title>Importar Estructura de Base de Datos</title>
-    <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css' rel='stylesheet'>
+    <link href='assets/css/bootstrap-5.1.3.min.css' rel='stylesheet'>
 </head>
 <body class='container mt-4'>";
 
@@ -174,3 +174,4 @@ try {
 
 echo "</body></html>";
 ?>
+

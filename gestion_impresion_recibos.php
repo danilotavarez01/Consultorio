@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Solución Completa para el Problema de Impresión de Recibos
  * Este script corrige el flujo de datos entre el registro de pagos y la impresión
@@ -159,8 +159,8 @@ function mostrarPaginaGestion($conn) {
     <head>
         <meta charset="UTF-8">
         <title>Gestión de Impresión de Recibos</title>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+        <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+        <link rel="stylesheet" href="assets/css/fontawesome.min.css">
         <style>
             .status-good { color: #28a745; }
             .status-warning { color: #ffc107; }
@@ -378,3 +378,4 @@ function mostrarPaginaGestion($conn) {
     <?php
 }
 ?>
+

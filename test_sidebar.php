@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 
 // ARCHIVO DE TEST DESACTIVADO PARA EVITAR AUTO-LOGIN
@@ -28,8 +28,8 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 <head>
     <meta charset="UTF-8">
     <title>Test del Sidebar</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <style>
         .sidebar { background-color: #343a40; color: white; padding: 20px; }
         .sidebar a { color: white; display: block; padding: 5px 0; }
@@ -88,3 +88,4 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 </body>
 </html>
 ?>
+

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once "config.php";
 
@@ -19,7 +19,7 @@ $consulta = [
 <head>
     <meta charset="UTF-8">
     <title>Test Odontograma Simple</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <style>
         body { padding: 20px; }
         .debug { background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; font-family: monospace; }
@@ -70,7 +70,7 @@ $consulta = [
     </div>
     <?php endif; ?>
     
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
     
     <?php if (!empty($consulta['dientes_seleccionados'])): ?>
     <script>
@@ -234,3 +234,4 @@ $consulta = [
     <p><a href="odontograma_svg.php">🔗 Ver odontograma directo</a></p>
 </body>
 </html>
+

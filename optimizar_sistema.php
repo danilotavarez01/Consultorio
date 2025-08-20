@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 session_start();
 require_once 'config.php';
 
@@ -38,19 +38,19 @@ function descargarLibreriasLocales() {
     
     $recursos = [
         'jquery' => [
-            'url' => 'https://code.jquery.com/jquery-3.6.0.min.js',
+            'url' => 'assets/js/jquery.min.js',
             'archivo' => 'jquery-3.6.0.min.js'
         ],
         'bootstrap_css' => [
-            'url' => 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css',
+            'url' => 'assets/css/bootstrap-5.1.3.min.css',
             'archivo' => 'bootstrap.min.css'
         ],
         'bootstrap_js' => [
-            'url' => 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js',
+            'url' => 'assets/js/bootstrap.bundle.min.js',
             'archivo' => 'bootstrap.bundle.min.js'
         ],
         'fontawesome' => [
-            'url' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
+            'url' => 'assets/css/fontawesome-6.0.0.min.css',
             'archivo' => 'fontawesome.min.css'
         ]
     ];
@@ -91,10 +91,10 @@ function incluir_libs_locales() {
 function incluir_libs_fallback() {
     echo \'
     <!-- CDN Fallback -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="assets/css/bootstrap-5.1.3.min.css" rel="stylesheet">
+    <link href="assets/css/fontawesome-6.0.0.min.css" rel="stylesheet">
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
     \';
 }
 ?>';
@@ -269,8 +269,8 @@ function crearHtaccessOptimizado() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Optimización del Sistema - Consultorio</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-5.1.3.min.css" rel="stylesheet">
+    <link href="assets/css/fontawesome-6.0.0.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container mt-4">
@@ -347,7 +347,10 @@ function crearHtaccessOptimizado() {
         </div>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
+
+

@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Completo de Impresión</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .test-step { margin: 15px 0; padding: 15px; border-radius: 5px; }
         .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
@@ -154,3 +154,4 @@
     </script>
 </body>
 </html>
+
