@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'session_config.php';
 session_start();
 require_once "permissions.php";
@@ -123,8 +123,8 @@ if (isset($_GET['editar'])) {
 <head>
     <meta charset="UTF-8">
     <title><?php echo $title; ?> - Consultorio Médico</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/fontawesome.min.css">
     <link rel="stylesheet" href="css/dark-mode.css">
     <style>
         .sidebar { min-height: 100vh; background-color: #343a40; padding-top: 20px; }
@@ -161,7 +161,10 @@ if (isset($_GET['editar'])) {
             <!-- Content -->
             <div class="col-md-10 content">
 <?php
-// Obtener lista de citas
+// Obtener lista de citas con paginación y optimización
+$limit = 30; // Limitar a 30 citas por página
+$offset = isset($_GET['page']) ? (intval($_GET['page']) - 1) * $limit : 0;
+
 $sql = "
     SELECT c.id, c.fecha, c.hora, c.paciente_id, c.doctor_id,
            CONCAT(p.nombre, ' ', p.apellido) as paciente, 
@@ -169,12 +172,26 @@ $sql = "
            u.nombre as doctor, 
            c.estado, c.observaciones
     FROM citas c
+    FORCE INDEX (idx_citas_fecha)
     JOIN pacientes p ON c.paciente_id = p.id
     JOIN usuarios u ON c.doctor_id = u.id";
 
 // Inicializar el WHERE
 $where = [];
 $params = [];
+
+// Verificar si hay algún filtro aplicado
+$hay_filtros = isset($_GET['filtro']) || 
+               (isset($_GET['fecha_inicial']) && !empty($_GET['fecha_inicial'])) ||
+               (isset($_GET['fecha_final']) && !empty($_GET['fecha_final'])) ||
+               (isset($_GET['doctor_filtro']) && !empty($_GET['doctor_filtro'])) ||
+               (isset($_GET['estado_filtro']) && !empty($_GET['estado_filtro'])) ||
+               (isset($_GET['nombre_filtro']) && !empty($_GET['nombre_filtro']));
+
+// Si no hay filtros aplicados, mostrar citas del día actual por defecto
+if (!$hay_filtros) {
+    $where[] = "c.fecha = CURDATE()";
+}
 
 // Aplicar filtro si existe
 if (isset($_GET['filtro']) && $_GET['filtro'] == 'hoy') {
@@ -206,27 +223,36 @@ if (isset($_GET['estado_filtro']) && !empty($_GET['estado_filtro'])) {
 
 // Filtrar por nombre de paciente si se ingresó
 if (isset($_GET['nombre_filtro']) && !empty($_GET['nombre_filtro'])) {
-    $where[] = "(p.nombre LIKE ? OR p.apellido LIKE ? OR CONCAT(p.nombre, ' ', p.apellido) LIKE ?)";
+    $where[] = "(p.nombre LIKE ? OR p.apellido LIKE ?)";
     $nombre_busqueda = '%' . $_GET['nombre_filtro'] . '%';
-    $params[] = $nombre_busqueda;
     $params[] = $nombre_busqueda;
     $params[] = $nombre_busqueda;
 }
 
 // Construir cláusula WHERE si hay condiciones
+$where_clause = "";
 if (!empty($where)) {
-    $sql .= " WHERE " . implode(" AND ", $where);
+    $where_clause = " WHERE " . implode(" AND ", $where);
+    $sql .= $where_clause;
 }
 
-$sql .= " ORDER BY c.fecha DESC, c.hora DESC";
+$sql .= " ORDER BY c.fecha DESC, c.hora DESC LIMIT $limit OFFSET $offset";
 
 // Preparar y ejecutar la consulta
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $citas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Obtener lista de pacientes para el formulario
-$stmt = $conn->query("SELECT id, CONCAT(nombre, ' ', apellido) as nombre FROM pacientes ORDER BY nombre");
+// Obtener total para paginación
+$count_sql = "SELECT COUNT(*) FROM citas c JOIN pacientes p ON c.paciente_id = p.id JOIN usuarios u ON c.doctor_id = u.id" . $where_clause;
+$count_stmt = $conn->prepare($count_sql);
+$count_stmt->execute($params);
+$total_citas = $count_stmt->fetchColumn();
+$total_pages = ceil($total_citas / $limit);
+$current_page = isset($_GET['page']) ? intval($_GET['page']) : 1;
+
+// Obtener lista de pacientes para el formulario (optimizada con LIMIT)
+$stmt = $conn->query("SELECT id, CONCAT(nombre, ' ', apellido) as nombre FROM pacientes ORDER BY nombre LIMIT 100");
 $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Obtener configuración para ver si multi_medico está habilitado
@@ -234,7 +260,7 @@ $stmt = $conn->query("SELECT multi_medico, medico_nombre FROM configuracion WHER
 $config = $stmt->fetch(PDO::FETCH_ASSOC);
 $multi_medico = isset($config['multi_medico']) && $config['multi_medico'] == 1;
 
-// Obtener lista de doctores para el formulario si multi_medico está habilitado
+// Obtener lista de doctores para el formulario si multi_medico está habilitado (optimizada)
 if ($multi_medico) {
     $stmt = $conn->query("SELECT id, nombre FROM usuarios WHERE rol = 'doctor' ORDER BY nombre");
     $doctores = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -258,12 +284,19 @@ if ($multi_medico) {
     
     <?php if (!empty($errores)): ?>
         <div class="alert alert-danger">
-                                <td>
-                                    <a href="Citas.php?editar=<?php echo $c['id']; ?>" class="btn btn-sm btn-primary">Editar</a>
-                                    <a href="Citas.php?eliminar=<?php echo $c['id']; ?>" class="btn btn-sm btn-danger" 
-                                       onclick="return confirm('¿Está seguro de eliminar esta cita?')">Eliminar</a>
-                                    <a href="turnos.php?agregar_desde_cita=<?php echo $c['id']; ?>&paciente_id=<?php echo $c['paciente_id']; ?>&fecha=<?php echo $c['fecha']; ?>&doctor_id=<?php echo $c['doctor_id']; ?>" class="btn btn-sm btn-success mt-1"<?php echo ($c['estado'] == 'Confirmada') ? ' disabled' : ''; ?>>Agregar a Turnos</a>
-                                </td>
+            <ul>
+                <?php foreach($errores as $error): ?>
+                    <li><?php echo htmlspecialchars($error); ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
+    <?php endif; ?>
+    
+    <?php if (!$hay_filtros): ?>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> <strong>Mostrando citas de hoy:</strong> <?php echo date('d/m/Y'); ?> 
+            | <a href="Citas.php?fecha_inicial=<?php echo date('Y-m-01'); ?>&fecha_final=<?php echo date('Y-m-t'); ?>" class="alert-link">Ver todas las citas del mes</a>
+        </div>
     <?php endif; ?>
     
     <div class="card mb-4">
@@ -456,11 +489,12 @@ if ($multi_medico) {
         </div>
     </div>
       <div class="card">        <div class="card-header d-flex justify-content-between align-items-center">
-            <span>Lista de Citas</span>
+            <span>Lista de Citas<?php echo !$hay_filtros ? ' - Hoy (' . date('d/m/Y') . ')' : ''; ?></span>
             <div>
                 <a href="Citas.php?filtro=hoy" class="btn btn-sm btn-outline-primary">Hoy</a>
                 <a href="<?php echo 'Citas.php?fecha_inicial=' . date('Y-m-d', strtotime('monday this week')) . '&fecha_final=' . date('Y-m-d', strtotime('sunday this week')); ?>" class="btn btn-sm btn-outline-primary">Esta semana</a>
                 <a href="<?php echo 'Citas.php?fecha_inicial=' . date('Y-m-01') . '&fecha_final=' . date('Y-m-t'); ?>" class="btn btn-sm btn-outline-primary">Este mes</a>
+                <a href="Citas.php" class="btn btn-sm btn-outline-secondary">Todas</a>
                 <button id="btnEnviarWhatsapp" class="btn btn-sm btn-success"><i class="fab fa-whatsapp"></i> WhatsApp</button>
             </div>
         </div><div class="card-body">
@@ -513,9 +547,9 @@ if ($multi_medico) {
     </div>
             </div> <!-- /Content -->
         </div> <!-- /row -->
-    </div> <!-- /container-fluid -->    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    </div> <!-- /container-fluid -->    <script src="assets/js/jquery.min.js"></script>
+    <script src="assets/js/popper-2.5.4.min.js"></script>
+    <script src="assets/js/bootstrap.min.js"></script>
     <script src="js/theme-manager.js"></script>
     
     <!-- Preparar los datos de citas para el script de WhatsApp -->
