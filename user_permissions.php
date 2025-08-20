@@ -97,7 +97,8 @@ $available_permissions = [
         'manage_procedures' => 'Gestionar Procedimientos',
         'view_procedures' => 'Ver Procedimientos',
         'gestionar_catalogos' => 'Gestionar Catálogos',
-        'manage_specialties' => 'Gestionar Especialidades'
+        'manage_specialties' => 'Gestionar Especialidades',
+        'seguros_medicos' => 'Gestionar Seguros Médicos'
     ],
     'Configuración y Administración' => [
         'manage_settings' => 'Configuración del Sistema',
