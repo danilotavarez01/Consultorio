@@ -653,7 +653,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <!-- Tabla de turnos -->
                 <div class="table-responsive">
-                    <table class="table table-hover">                        <thead>                            <tr>
+                    <table class="table table-hover">                        
+                        <thead>                           
+                            <tr>
                                 <th>#</th>
                                 <th>Hora</th>
                                 <th>Paciente</th>
@@ -731,6 +733,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     echo "<td>";
                                     echo "<input type='hidden' name='turno_id' value='".$row['id']."'>"; // Campo oculto para turno_id
                                     echo "<input type='hidden' class='medico-nombre-hidden' value='".htmlspecialchars($row['medico_nombre'] ?? '')."'>"; // Campo oculto para medico_nombre
+                                    echo "<input type='hidden' class='paciente-id-hidden' value='".$row['paciente_id']."'>"; // Campo oculto para paciente_id
                                     // Obtener el texto y icono del estado actual
                                     $estado_actual = $row['estado'];
                                     $estado_texto = '';
@@ -1462,7 +1465,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     var currentMedicoNombre = currentRow.find('.medico-nombre-hidden').val();
                     var currentTurnoId = currentRow.find('input[name="turno_id"]').val();
                     
-                    // Verificar si ya hay otro paciente en consulta con el mismo médico
+                    // Obtener la fecha actual del filtro para verificar solo turnos del día actual
+                    var fechaActual = $('#filtroFecha').val() || new Date().toISOString().split('T')[0];
+                    
+                    // Verificar si ya hay otro paciente en consulta con el mismo médico en la fecha actual
                     var conflictFound = false;
                     var conflictPatient = '';
                     
@@ -1474,6 +1480,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         var currentEstado = $rowButton.attr('data-estado-actual');
                         
                         // Si es una fila diferente, mismo médico, y ya está en consulta
+                        // Como la tabla ya filtra por fecha, todos los turnos mostrados son del día seleccionado
                         if (rowTurnoId !== currentTurnoId && 
                             rowMedicoNombre === currentMedicoNombre && 
                             currentEstado === 'en_consulta') {
@@ -1486,7 +1493,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     });
                     
                     if (conflictFound) {
-                        alert('Ya hay otro paciente (' + conflictPatient + ') en consulta con ' + currentMedicoNombre + '. Solo se puede atender un paciente a la vez por médico.');
+                        var fechaFormateada = new Date(fechaActual + 'T00:00:00').toLocaleDateString('es-DO', {
+                            year: 'numeric', 
+                            month: '2-digit', 
+                            day: '2-digit'
+                        });
+                        alert('Ya hay otro paciente (' + conflictPatient + ') en consulta con ' + currentMedicoNombre + ' en la fecha ' + fechaFormateada + '. Solo se puede atender un paciente a la vez por médico.');
                         $('.dropdown-menu').removeClass('show').hide();
                         return false;
                     }
@@ -1558,6 +1570,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 
                 // Actualizar el HTML del botón
                 $button.html('<i class="' + newIcon + ' mr-1"></i>' + newText);
+                
+                // Manejar el botón de facturar según el estado
+                var $row = $button.closest('tr');
+                var $actionsDiv = $row.find('.d-flex.align-items-center.flex-wrap');
+                var $facturarBtn = $actionsDiv.find('.btn-warning[data-target="#modalFacturar"]');
+                
+                if (estadoValue === 'en_consulta') {
+                    // Si el estado es "en consulta" y no existe el botón de facturar, agregarlo
+                    if ($facturarBtn.length === 0) {
+                        // Obtener datos del paciente de la fila
+                        var pacienteNombre = $row.find('td:nth-child(3)').text().trim();
+                        var pacienteId = $row.find('.paciente-id-hidden').val();
+                        
+                        // Crear el botón de facturar
+                        var facturarHtml = '<button type="button" class="btn btn-warning btn-sm mb-1" data-toggle="modal" data-target="#modalFacturar" ' +
+                            'data-paciente-nombre="' + pacienteNombre + '" ' +
+                            'data-seguro="" ' +
+                            'data-seguro-monto="" ' +
+                            'data-pacienteid="' + pacienteId + '">' +
+                            '<i class="fas fa-file-invoice-dollar"></i> Facturar' +
+                            '</button>';
+                        
+                        // Insertar el botón después del botón de ver paciente
+                        $actionsDiv.find('.btn-success[href*="ver_paciente"]').after(' ' + facturarHtml);
+                    }
+                } else {
+                    // Si el estado no es "en consulta", remover el botón de facturar si existe
+                    if ($facturarBtn.length > 0) {
+                        $facturarBtn.remove();
+                    }
+                }
                 
                 // Forzar la aplicación de estilos usando CSS directo si es necesario
                 setTimeout(function() {
