@@ -409,7 +409,7 @@ try {
     <script src="assets/js/jquery.min.js"></script>
     <script src="assets/js/popper-2.5.4.min.js"></script>
     <script src="assets/js/bootstrap.min.js"></script>
-    <script src="js/dark-mode.js"></script>
+    <script src="js/theme-manager.js"></script>
     
     <script>
         function editarSeguro(id, descripcion) {
