@@ -103,7 +103,7 @@ if (is_dir($custom_session_path)) {
         </div>
     </div>
 
-    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
+    <!-- FontAwesome ya está incluido localmente en el header -->
     <script>
         // Auto-redirect después de 10 segundos
         setTimeout(function() {
